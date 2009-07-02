@@ -1,0 +1,14 @@
+(dp1
+S'latexout'
+p2
+S''
+sS'autoopen'
+p3
+I00
+sS'dvi'
+p4
+I00
+sS'latexin'
+p5
+S''
+s.

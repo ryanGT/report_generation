@@ -1,0 +1,25 @@
+This is an example of using \texttt{texpy}.
+
+\pyno{
+from numpy import *
+}
+
+Here are two arrays that should print nicely:
+\py{
+t = arange(0,1,0.01)
+y = sin(2*pi*t)
+}
+
+and here is some trivial math:
+\py{
+a = 3
+b = 4
+c = a+b
+}
+
+Equation labels are supported:
+\py{
+label=eq:example
+d = c**2
+}
+Equation~\ref{eq:example} is pretty important.
