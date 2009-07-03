@@ -5,7 +5,7 @@ import pdb
 
 import rwkmisc
 
-header = r"""\documentclass[12pt]{article}
+header = r"""\documentclass[12pt, fleqn]{article}
 \newcommand{\be}{\begin{equation}}
 \newcommand{\ee}{\end{equation}}
 \newcommand{\M}[1]{\left[\mathbf{#1}\right]}
@@ -13,13 +13,29 @@ header = r"""\documentclass[12pt]{article}
 \usepackage{amsmath}
 \renewcommand{\v}[1]{\left\{\mathbf{#1}\right\}}
 \newcommand{\twobytwo}[4]{\begin{bmatrix} #1 & #2 \\ #3 & #4 \end{bmatrix}}
+\newcommand{\twobyone}[2]{\begin{Bmatrix} #1 \\ #2\end{Bmatrix}}
+\makeatletter
+\setlength\@mathmargin{5pt}
+\makeatother
 \begin{document}
 \thispagestyle{empty}
+\flushleft
 """
 
-def wrap_eq_in_full_tex(eq_in):
-    eq_line = '$$ %s $$\n' % eq_in
-    tex_code = header + eq_line + '\\end{document}'
+def wrap_eq_in_dollar_signs(eq_in):
+    eq_in = eq_in.strip()
+    eq_line = '$$ %s $$' % eq_in
+    return eq_line
+
+def wrap_eq_in_eqn_star(eq_in):
+    eq_in = eq_in.strip()
+    eq_line = '\\begin{equation*}\n %s \n\\end{equation*}\n' % eq_in
+    return eq_line
+
+def wrap_latex_in_full_tex(text_in):
+    if text_in[-1] != '\n':
+        text_in += '\n'
+    tex_code = header + text_in + '\\end{document}'
     return tex_code
 
 def tex_code_to_file(code, filepath):
@@ -36,12 +52,17 @@ def find_cache_dir(cache_dir=None):
         os.mkdir(cache_dir)
     return cache_dir
 
-def eqn_to_file_in_cache(eq_in, cache_dir=None, filename='temp_out.tex'):
-    tex_code = wrap_eq_in_full_tex(eq_in)
+def latex_to_file_in_cache(latex_in, cache_dir=None, \
+                           filename='temp_out.tex'):
+    tex_code = wrap_latex_in_full_tex(latex_in)
     cache_dir = find_cache_dir(cache_dir)
     filepath = os.path.join(cache_dir, filename)
     tex_code_to_file(tex_code, filepath)
     return filepath
+
+def eqn_to_file_in_cache(eq_in, *args, **kwargs):
+    eq_line = wrap_eq_in_eqn_star(eq_in)
+    return latex_to_file_in_cache(eq_line, *args, **kwargs)
 
 def read_eqn_from_file(filename='temp.tex', cache_dir=None):
     cache_dir = find_cache_dir(cache_dir)
@@ -53,7 +74,7 @@ def read_eqn_from_file(filename='temp.tex', cache_dir=None):
     clean_text = clean_text.strip()
     return clean_text
     
-def run_latex_dvi_png(pathin):
+def run_latex_dvi_png(pathin, res=750):
     curdir = os.getcwd()
     tex_dir, filename = os.path.split(pathin)
     fno, ext = os.path.splitext(filename)
@@ -65,7 +86,7 @@ def run_latex_dvi_png(pathin):
                              stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         output, errors = p.communicate()
         print(output)
-        dvipng_cmd = "dvipng -D 600 -bg 'Transparent' -T tight "+dvi_name
+        dvipng_cmd = "dvipng -D "+str(res)+" -bg 'Transparent' -T tight "+dvi_name
         p2 = subprocess.Popen(dvipng_cmd, shell=True, \
                               stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         output2, errors2 = p2.communicate()
@@ -81,20 +102,27 @@ def log_eq(eq_in, log_name=None, cache_dir=None):
     f = open(log_path, 'ab')
     f.write(eq_in +'\n')
     f.close()
-    
-def eq_to_dvi_png(eq_in, filename='temp_out.tex', cache_dir=None, \
-                  log=True):
-    if log:
-        log_eq(eq_in, cache_dir=None)
-    filepath = eqn_to_file_in_cache(eq_in, filename=filename, \
-                                    cache_dir=cache_dir)
-    dvi_name = run_latex_dvi_png(filepath)
+
+def find_png_name(dvi_name='temp_out.dvi', cache_dir=None):
     fno, ext = os.path.splitext(dvi_name)
     pngname = fno+'1.png'
     cache_dir = find_cache_dir(cache_dir)
     pngpath = os.path.join(cache_dir, pngname)
     if os.path.exists(pngpath):
         return pngpath
+    
+def latex_to_dvi_png(latex_in, filename='temp_out.tex', cache_dir=None, \
+                  log=True):
+    if log:
+        log_eq(latex_in, cache_dir=None)
+    filepath = latex_to_file_in_cache(latex_in, filename=filename, \
+                                      cache_dir=cache_dir)
+    dvi_name = run_latex_dvi_png(filepath)
+    return find_png_name(dvi_name, cache_dir=cache_dir)
+
+def eq_to_dvi_png(eq_in, *args, **kwargs):
+    latex_line = wrap_eq_in_eqn_star(eq_in)
+    return latex_to_dvi_png(latex_line, *args, **kwargs)
 
 def read_from_file_dvi_png(filename='temp.tex', cache_dir=None, \
                            log=True):
