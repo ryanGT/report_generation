@@ -3,6 +3,8 @@ import os, subprocess
 
 import pdb
 
+import rwkmisc
+
 header = r"""\documentclass[12pt]{article}
 \newcommand{\be}{\begin{equation}}
 \newcommand{\ee}{\end{equation}}
@@ -38,24 +40,26 @@ def eqn_to_file_in_cache(eq_in, cache_dir=None, filename='temp_out.tex'):
     cache_dir = find_cache_dir(cache_dir)
     filepath = os.path.join(cache_dir, filename)
     tex_code_to_file(tex_code, filepath)
+    return filepath
 
 def read_eqn_from_file(filename='temp.tex', cache_dir=None):
     cache_dir = find_cache_dir(cache_dir)
     filepath = os.path.join(cache_dir, filename)
     f = open(filepath, 'rb')
     text = f.readlines()
-    clean_text = text.replace('\n',' ')
+    clean_text = ' '.join(text)
+    clean_text = clean_text.replace('\n',' ')
     clean_text = clean_text.strip()
     return clean_text
     
 def run_latex_dvi_png(pathin):
     curdir = os.getcwd()
-    tex_dir, file_name = os.path.split(pathin)
-    fno, ext = os.path.splitext(file_name)
+    tex_dir, filename = os.path.split(pathin)
+    fno, ext = os.path.splitext(filename)
     dvi_name = fno+'.dvi'
     try:
         os.chdir(tex_dir)
-        latexstr = 'latex -interaction=nonstopmode '+ file_name
+        latexstr = 'latex -interaction=nonstopmode '+ filename
         p = subprocess.Popen(latexstr, shell=True, \
                              stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         output, errors = p.communicate()
@@ -69,12 +73,32 @@ def run_latex_dvi_png(pathin):
     return dvi_name
 
 def log_eq(eq_in, log_name=None, cache_dir=None):
+    cache_dir = find_cache_dir(cache_dir)
+    if log_name is None:
+        log_name = 'tex_dvi_log_'+rwkmisc.get_date_str()+'.tex'
+    log_path = os.path.join(cache_dir, log_name)
+    f = open(log_path, 'ab')
+    f.write(eq_in +'\n')
+    f.close()
     
-    
-def eq_to_dvi_png(eq_in, file_name='temp.tex', cache_dir=None, \
+def eq_to_dvi_png(eq_in, filename='temp_out.tex', cache_dir=None, \
                   log=True):
-    pass
+    if log:
+        log_eq(eq_in, cache_dir=None)
+    filepath = eqn_to_file_in_cache(eq_in, filename=filename, \
+                                    cache_dir=cache_dir)
+    dvi_name = run_latex_dvi_png(filepath)
+    fno, ext = os.path.splitext(dvi_name)
+    pngname = fno+'1.png'
+    cache_dir = find_cache_dir(cache_dir)
+    pngpath = os.path.join(cache_dir, pngname)
+    if os.path.exists(pngpath):
+        return pngpath
 
-def read_from_file_dvi_png(file_name='temp.tex', cache_dir=None, \
+def read_from_file_dvi_png(filename='temp.tex', cache_dir=None, \
                            log=True):
-    pass
+    eq_in = read_eqn_from_file(filename, cache_dir=cache_dir)
+    fno, ext = os.path.splitext(filename)
+    outname = fno+'_out.tex'
+    return eq_to_dvi_png(eq_in, filename=outname, \
+                         cache_dir=cache_dir, log=log)
