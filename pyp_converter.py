@@ -450,8 +450,8 @@ class Latex_document(txt_mixin.txt_file_with_list):
         self.conditional_header_append('\\usepackage{%s}' % packagename)
         
 
-    def to_latex(self, sections=None, **kwargs):
-        if not hasattr(self, 'header'):
+    def to_latex(self, sections=None, add_header=True, **kwargs):
+        if not hasattr(self, 'header') and add_header:
             self.add_header(**kwargs)
         self.latex_body = txt_mixin.txt_list(self.converter.to_latex(sections=sections))
 
@@ -467,7 +467,7 @@ class Latex_document(txt_mixin.txt_file_with_list):
             self.to_latex()
         self.fulllist = self.header+self.latex_body
         ed = '\\end{document}'
-        if ed not in self.fulllist:
+        if ed not in self.fulllist and hasattr(self,'header'):
             self.fulllist.append(ed)
         pytexutils.writefile(self.pathout, self.fulllist)
 
