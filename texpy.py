@@ -63,7 +63,10 @@ default_envmap = {'py':pytex.OuterBlock, \
                   'pyine':pytex.PyInLineNoExecuteBlock, \
                   'pyne':pytex.PyNoExecuteBlock,
                   'pyanscom':pytex.PyAnsCommentBlock,
-                  'pyecho':pytex.EchoBlock}
+                  'pyecho':pytex.EchoBlock,
+                  'pystd':pytex.StdoutBlock,
+                  'pyinput':pytex.InputFile,
+                  }
 
 
 exclude_lhs_list = [pytex.LoopBlock, pytex.ArbitraryBlock]
