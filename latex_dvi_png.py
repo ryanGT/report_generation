@@ -12,6 +12,7 @@ header = r"""\documentclass[12pt]{article}
 \usepackage{fancyhdr}
 \usepackage{amsmath}
 \renewcommand{\v}[1]{\left\{\mathbf{#1}\right\}}
+\newcommand{\twobytwo}[4]{\begin{bmatrix} #1 & #2 \\ #3 & #4 \end{bmatrix}}
 \begin{document}
 \thispagestyle{empty}
 """
