@@ -81,7 +81,7 @@ def GetKeyPress(evt):
 class MyFrame(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title,
-                          pos=(150, 500), size=(900, 230))
+                          pos=(150, 500), size=(900, 250))
         # Create the menubar
         menuBar = wx.MenuBar()
 
@@ -122,13 +122,16 @@ class MyFrame(wx.Frame):
                                    (10 + wxbmp.GetWidth(), 5), \
                                    (wxbmp.GetWidth(), \
                                     wxbmp.GetHeight()))
-        self.text = wx.TextCtrl(self, -1, "", size=(500, 30),
+        self.text = wx.TextCtrl(self, -1, "", size=(500, 50),
                                 style = wx.TE_MULTILINE
                                 |wx.WANTS_CHARS
                                 #| wx.TE_RICH
                                 #| wx.TE_RICH2
                                 )
+        myfont = wx.Font(24, wx.DEFAULT, wx.NORMAL, wx.NORMAL, \
+                         False, u'Nimbus Roman No 9')
         #self.bmp.SetSize([300, 100])
+        self.text.SetFont(myfont)
         self.exitbutton = wx.Button(self, -1, "Exit")
         self.refresh_button = wx.Button(self, -1, "Refresh")
         self.eqn_button = wx.Button(self, -1, "Eqn. LaTeX")
