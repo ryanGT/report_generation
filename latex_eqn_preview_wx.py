@@ -22,6 +22,8 @@ import os, copy
 
 import rwkos
 
+cache_dir = latex_dvi_png.find_cache_dir()
+
 def gen_keymap():
     keys = ("BACK", "TAB", "RETURN", "ESCAPE", "SPACE", "DELETE", "START",
         "LBUTTON", "RBUTTON", "CANCEL", "MBUTTON", "CLEAR", "PAUSE",
@@ -103,7 +105,9 @@ class MyFrame(wx.Frame):
         self.p_re = re.compile('\$\$(.*?)\$\$')
         #create top level controls (i.e. those not on a notebook page)
         #create the main directory chooser
-        imageFile = '/home/ryan/.latex_dvi_png_cache/temp_out1.png'
+        imageFile = os.path.join(cache_dir, 'temp_out1.png')
+        if not os.path.exists(imageFile):
+            pngpath = latex_dvi_png.eq_to_dvi_png('\v{x} = \\twobyone{1/3}{1}')
         mysize = self.GetSize()
         w, h = mysize
         #w = 500
