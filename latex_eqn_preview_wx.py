@@ -24,6 +24,11 @@ import rwkos
 
 cache_dir = latex_dvi_png.find_cache_dir()
 
+from xdotool import send_xdotool_cmd, get_window_ids, \
+     windows_with_str_in_title, GIMP_windows, \
+     Untitled_windows, get_Untitled_GIMP, activate_window, \
+     latex_eqn_preview_id, set_window_focus
+    
 def gen_keymap():
     keys = ("BACK", "TAB", "RETURN", "ESCAPE", "SPACE", "DELETE", "START",
         "LBUTTON", "RBUTTON", "CANCEL", "MBUTTON", "CLEAR", "PAUSE",
@@ -260,6 +265,20 @@ class MyFrame(wx.Frame):
         if keycode==92 and (evt.ControlDown() or evt.AltDown()):
             #ctrl or alt \
             self.On_Eqn_Tex_Button(evt)
+            untitled_GIMP_id = get_Untitled_GIMP()
+            my_id = latex_eqn_preview_id()
+            print('untitled_GIMP_id=%s' % untitled_GIMP_id)
+            set_window_focus(untitled_GIMP_id)
+            send_xdotool_cmd('key "F7"')
+            set_window_focus(my_id)
+        elif keycode==344:#F5
+            #GIMP_list = get_window_ids('search --title GIMP')#'search --title --onlyvisible GIMP'
+            #print('GIMP_list=%s' % GIMP_list)
+            untitled_GIMP_id = get_Untitled_GIMP()
+            if untitled_GIMP_id:
+                activate_window(untitled_GIMP_id)
+                send_xdotool_cmd('key "F11"')
+                return
 ##         print('keycode=%s' % keycode)
 ##         print('evt.ControlDown()=%s' % evt.ControlDown())
         if keycode not in flist:

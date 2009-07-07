@@ -74,7 +74,11 @@ def read_eqn_from_file(filename='temp.tex', cache_dir=None):
     clean_text = clean_text.strip()
     return clean_text
     
-def run_latex_dvi_png(pathin, res=750):
+def run_latex_dvi_png(pathin, res=750, bg_str=None):
+    """bg_str = 'rgb 1.0 1.0 1.0' should be white.
+    bg_str='Transparent' could also be used."""
+    if bg_str is None:
+        bg_str = "'rgb 1.0 1.0 1.0'"
     curdir = os.getcwd()
     tex_dir, filename = os.path.split(pathin)
     fno, ext = os.path.splitext(filename)
@@ -86,7 +90,7 @@ def run_latex_dvi_png(pathin, res=750):
                              stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         output, errors = p.communicate()
         print(output)
-        dvipng_cmd = "dvipng -D "+str(res)+" -bg 'Transparent' -T tight "+dvi_name
+        dvipng_cmd = "dvipng -D "+str(res)+" -bg " + bg_str + " -T tight "+dvi_name
         p2 = subprocess.Popen(dvipng_cmd, shell=True, \
                               stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         output2, errors2 = p2.communicate()
@@ -112,12 +116,12 @@ def find_png_name(dvi_name='temp_out.dvi', cache_dir=None):
         return pngpath
     
 def latex_to_dvi_png(latex_in, filename='temp_out.tex', cache_dir=None, \
-                  log=True):
+                     log=True, bg_str=None):
     if log:
         log_eq(latex_in, cache_dir=None)
     filepath = latex_to_file_in_cache(latex_in, filename=filename, \
                                       cache_dir=cache_dir)
-    dvi_name = run_latex_dvi_png(filepath)
+    dvi_name = run_latex_dvi_png(filepath, bg_str=bg_str)
     return find_png_name(dvi_name, cache_dir=cache_dir)
 
 def eq_to_dvi_png(eq_in, *args, **kwargs):
