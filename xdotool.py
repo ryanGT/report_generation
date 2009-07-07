@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os, latex_dvi_png
 
 def send_xdotool_cmd(cmd_str):
     import subprocess
@@ -47,3 +48,29 @@ def set_window_focus(id):
 def activate_window(id):
     send_xdotool_cmd('windowfocus %s' % id)
     send_xdotool_cmd('windowraise %s' % id)
+
+def get_active_window_id():
+    return send_xdotool_cmd('getactivewindow')
+
+def _get_window_id_path():
+    cache_dir = latex_dvi_png.find_cache_dir()
+    window_id_path = os.path.join(cache_dir, 'GIMP_window_id.txt')
+    return window_id_path
+
+def save_window_id(id):
+    mypath = _get_window_id_path()
+    f = open(mypath, 'wb')
+    myline = '%s\n' % id
+    f.write(myline)
+    f.close()
+
+def read_window_id():
+    mypath = _get_window_id_path()
+    f = open(mypath, 'rb')
+    myline = f.read()
+    myline = myline.strip()
+    return int(myline)
+
+def save_active_window_id():
+    aid = get_active_window_id()
+    save_window_id(aid)

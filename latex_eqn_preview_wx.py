@@ -5,10 +5,24 @@ import wx
 #from scipy import *
 
 import os, cPickle, pdb, sys, re
-
+import time
 import rwkmisc
 #reload(rwkmisc)
 
+if len(sys.argv) > 0:
+    headless = int(sys.argv[1])
+else:
+    headless = 0
+
+if headless:
+    frame_size = (400, 200)
+    text_ctrl_size = (380, 50)
+    sizer_rows = 2
+else:
+    frame_size = (900, 250)
+    text_ctrl_size = (850, 50)
+    sizer_rows = 3
+    
 import rwkos
 #reload(rwkos)
 
@@ -27,7 +41,7 @@ cache_dir = latex_dvi_png.find_cache_dir()
 from xdotool import send_xdotool_cmd, get_window_ids, \
      windows_with_str_in_title, GIMP_windows, \
      Untitled_windows, get_Untitled_GIMP, activate_window, \
-     latex_eqn_preview_id, set_window_focus
+     latex_eqn_preview_id, set_window_focus, read_window_id
     
 def gen_keymap():
     keys = ("BACK", "TAB", "RETURN", "ESCAPE", "SPACE", "DELETE", "START",
@@ -88,7 +102,7 @@ def GetKeyPress(evt):
 class MyFrame(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title,
-                          pos=(150, 500), size=(900, 250))
+                          pos=(150, 500), size=frame_size)
         # Create the menubar
         menuBar = wx.MenuBar()
 
@@ -120,24 +134,28 @@ class MyFrame(wx.Frame):
         #pil = Load_PIL_and_Resize(imageFile, [int(0.95*w), int(0.7*h)])
         #wxbmp = PIL_to_wx(pil)
 
-        png1 = wx.Image(imageFile, wx.BITMAP_TYPE_ANY)
-        pw, ph = png1.GetSize()
-        aspect_ratio = float(pw)/float(ph)
-        new_w = 400
-        new_h = 100
-        png1.Rescale(int(new_w), int(new_h))
-        wxbmp = png1.ConvertToBitmap()
-        self.bmp = wx.StaticBitmap(self, -1, wxbmp, \
-                                   (10 + wxbmp.GetWidth(), 5), \
-                                   (wxbmp.GetWidth(), \
-                                    wxbmp.GetHeight()))
-        self.text = wx.TextCtrl(self, -1, "", size=(500, 50),
+        if not headless:
+            png1 = wx.Image(imageFile, wx.BITMAP_TYPE_ANY)
+            pw, ph = png1.GetSize()
+            aspect_ratio = float(pw)/float(ph)
+            new_w = 400
+            new_h = 100
+            png1.Rescale(int(new_w), int(new_h))
+            wxbmp = png1.ConvertToBitmap()
+            self.bmp = wx.StaticBitmap(self, -1, wxbmp, \
+                                       (10 + wxbmp.GetWidth(), 5), \
+                                       (wxbmp.GetWidth(), \
+                                        wxbmp.GetHeight()))
+        #change the size if headless
+        self.text = wx.TextCtrl(self, -1, "", size=text_ctrl_size,
                                 style = wx.TE_MULTILINE
                                 |wx.WANTS_CHARS
+                                #|wx.TE_CHARWRAP 
+                                |wx.TE_WORDWRAP
                                 #| wx.TE_RICH
                                 #| wx.TE_RICH2
                                 )
-        myfont = wx.Font(24, wx.DEFAULT, wx.NORMAL, wx.NORMAL, \
+        myfont = wx.Font(18, wx.DEFAULT, wx.NORMAL, wx.NORMAL, \
                          False, u'Nimbus Roman No 9')
         #self.bmp.SetSize([300, 100])
         self.text.SetFont(myfont)
@@ -152,12 +170,13 @@ class MyFrame(wx.Frame):
         buttonsizer.Add(self.refresh_button, 1, wx.ALL, 5)
         buttonsizer.Add(self.exitbutton, 1, wx.ALL, 5)
         
-        mainsizer = wx.FlexGridSizer(3, 1, 0, 0)
+        mainsizer = wx.FlexGridSizer(sizer_rows, 1, 0, 0)
         mainsizer.AddGrowableCol(0)
         mainsizer.AddGrowableRow(0)
-        
         #add the controls to the main sizer
-        mainsizer.Add(self.bmp, 1, wx.EXPAND|wx.ALL|wx.ALIGN_RIGHT, 5)
+        if not headless:
+            mainsizer.AddGrowableRow(1)
+            mainsizer.Add(self.bmp, 1, wx.EXPAND|wx.ALL|wx.ALIGN_RIGHT, 5)
         mainsizer.Add(self.text, 1, wx.EXPAND|wx.ALL|wx.ALIGN_RIGHT, 5)
         mainsizer.Add(buttonsizer, 1, wx.ALL|wx.ALIGN_RIGHT, 5)
 
@@ -180,39 +199,10 @@ class MyFrame(wx.Frame):
 ##         self.savepanellist = [self.texpypane, self.purelatexpane, self.pyppane, self.fancyhdrpane, self.wltpane]
         #mainsizer.Fit(self)
         self.Layout()
-        self.load_png(imageFile)
+        if not headless:
+            self.load_png(imageFile)
         self.text.SetFocus()
-
-##         self.LoadSettings()
-
-
-##     def SaveSettings(self): # wxGlade: MyFrame.<event_handler>
-##         mydict = {}
-##         topdir = self.topdirchooser.GetPath()
-##         mydict['topdir'] = topdir
-##         nbind = self.notebook.GetSelection()
-##         mydict['nbind'] = nbind
-##         mypkl = open(self.settingspath,'wb')
-##         cPickle.dump(mydict,mypkl)
-##         mypkl.close()
-##         for panel in self.savepanellist:
-##             panel.SaveSettings()
-
-
-##     def LoadSettings(self): # wxGlade: MyFrame.<event_handler>
-##         if os.path.exists(self.settingspath):
-##             mypkl = open(self.settingspath,'rb')
-##             mydict = cPickle.load(mypkl)
-##             mypkl.close()
-##             #print('mydict='+str(mydict))
-##             if mydict.has_key('topdir'):
-##                 self.topdirchooser.SetPath(mydict['topdir'])
-##             if mydict.has_key('nbind'):
-##                 self.notebook.SetSelection(mydict['nbind'])
-##         else:
-##             self.topdirchooser.SetPath(os.getcwd())
-##         for panel in self.savepanellist:
-##             panel.LoadSettings()
+        self.my_id = None
 
     def _size_png(self, png):
         mysize = self.GetSize()
@@ -249,12 +239,14 @@ class MyFrame(wx.Frame):
         result in the png viewer."""
         text = self._get_clean_text()
         pngpath = latex_dvi_png.latex_to_dvi_png(text)
-        self.load_png(pngpath)
+        if not headless:
+            self.load_png(pngpath)
 
     def On_Eqn_Tex_Button(self, evt):
         text = self._get_clean_text()        
         pngpath = latex_dvi_png.eq_to_dvi_png(text)
-        self.load_png(pngpath)
+        if not headless:
+            self.load_png(pngpath)
 
     def On_Refresh_Button(self, evt):
         print('in On_Refresh_Button')
@@ -264,13 +256,43 @@ class MyFrame(wx.Frame):
         flist = [346]#seem to go in order 346 = f7
         if keycode==92 and (evt.ControlDown() or evt.AltDown()):
             #ctrl or alt \
-            self.On_Eqn_Tex_Button(evt)
-            untitled_GIMP_id = get_Untitled_GIMP()
-            my_id = latex_eqn_preview_id()
-            print('untitled_GIMP_id=%s' % untitled_GIMP_id)
-            set_window_focus(untitled_GIMP_id)
+            if evt.AltDown():
+                print('AltDown = True')
+                self.On_Tex_Button(evt)
+            else:
+                self.On_Eqn_Tex_Button(evt)
+            #t1 = time.time()
+            #untitled_GIMP_id = get_Untitled_GIMP()
+            GIMP_id = read_window_id()
+            #t2 = time.time()
+            if self.my_id is None:
+                self.my_id = latex_eqn_preview_id()
+            #t3 = time.time()
+            set_window_focus(GIMP_id)
+            #t4 = time.time()
+            time.sleep(0.05)
             send_xdotool_cmd('key "F7"')
-            set_window_focus(my_id)
+            #t5 = time.time()
+            set_window_focus(self.my_id)
+            #t6 = time.time()
+##             print('In Python, t6-t1=%s' % (t6-t1))
+##             for i in range(1, 6):
+##                 cur_diff = 't%s-t%s' % (i+1, i)
+##                 exec('cur_t = '+cur_diff)
+##                 print(cur_diff + '=%s' % cur_t)
+
+        elif keycode==78 and evt.ControlDown():#ctrl + n
+            if not (evt.ShiftDown() or evt.AltDown()):
+                self.text.SetValue("")
+            GIMP_id = read_window_id()
+            #print('activating window %s' % GIMP_id)
+            #set_window_focus(GIMP_id)
+            activate_window(GIMP_id)
+            time.sleep(0.25)
+            #print('sending shift+F8')
+            send_xdotool_cmd('key "shift+F8"')
+        elif keycode==67 and evt.ControlDown():#ctrl + c
+            self.text.SetValue("")
         elif keycode==344:#F5
             #GIMP_list = get_window_ids('search --title GIMP')#'search --title --onlyvisible GIMP'
             #print('GIMP_list=%s' % GIMP_list)
@@ -279,8 +301,8 @@ class MyFrame(wx.Frame):
                 activate_window(untitled_GIMP_id)
                 send_xdotool_cmd('key "F11"')
                 return
-##         print('keycode=%s' % keycode)
-##         print('evt.ControlDown()=%s' % evt.ControlDown())
+        #print('keycode=%s' % keycode)
+        #print('evt.ControlDown()=%s' % evt.ControlDown())
         if keycode not in flist:
             evt.Skip()
             return
