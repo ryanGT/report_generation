@@ -9,6 +9,8 @@ from file_finder import Search_for_images_in_folder, Image_Finder
 import rwkos
 reload(rwkos)
 
+from rst_creator import rst2html_fullpath
+
 skipfolders = ['html','thumbnails','blog_size','resized', \
                '.comments','900by600','cache','screensize', \
                'exclude']
@@ -721,9 +723,19 @@ class DirectoryPage(ThumbNailPage):
          self.body.append('</ul>')
       return self.body
       
-   
+   def find_top_level_index_rst(self):
+      top_level_rsts = self.Find_Top_Level_Files(['*.rst'])
+      if len(top_level_rsts) > 0:
+         folders, names = rwkos.split_list_of_paths(top_level_rsts)
+         if 'index.rst' in names:
+            ind = names.index('index.rst')
+            return top_level_rsts[ind]
 
    def Create_Most(self, bl=True):
+      index_rst = self.find_top_level_index_rst()
+      if index_rst:
+         rst2html_fullpath(index_rst)
+         return
       self.FindSubFolders()
       if bl:
          self.Add_bottom_link(br=False)
@@ -817,7 +829,8 @@ class MainPageMaker2:
                                               title = self.title, \
                                               screensizedir=self.screensizedir)
       for root, dirs, files in os.walk(self.mainfolder):
-         if (not inskipfolders(root)) and (haspicts(root, self.extlist)):
+         if (not inskipfolders(root)) and (haspicts(root, \
+                                                    self.extlist+['.rst'])):
             print('root='+root)
             #print('mainfolder='+self.mainfolder)
             toplevel = (root == self.mainfolder)

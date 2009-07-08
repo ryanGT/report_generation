@@ -173,6 +173,12 @@ class rst_file(txt_mixin.txt_file_with_list):
         self.list.extend(subsection_list)
         
                                          
-        
-        
-        
+def rst2html_fullpath(pathin):
+    pne, ext = os.path.splitext(pathin)
+    htmlpath = pne + '.html'
+    if not rwkos.amiLinux():
+        base_cmd = 'rst2html.py %s %s'
+    else:
+        base_cmd = 'rst2html %s %s'
+    cmd = base_cmd % (pathin, htmlpath)
+    os.system(cmd)
