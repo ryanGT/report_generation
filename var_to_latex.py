@@ -61,6 +61,7 @@ def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False):
                 outstr += ' \\; \\textrm{or} \\; ' +polarstr
             return outstr
     else:
+        print '======>>>>',val
         return fmt % val
             
     

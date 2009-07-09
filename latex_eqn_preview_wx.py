@@ -103,7 +103,7 @@ class MyFrame(wx.Frame):
         self.p_re = re.compile('\$\$(.*?)\$\$')
         #create top level controls (i.e. those not on a notebook page)
         #create the main directory chooser
-        imageFile = '/home/ryan/.latex_dvi_png_cache/temp_out1.png'
+        imageFile = '/home/william/.latex_dvi_png_cache/temp_out1.png'
         mysize = self.GetSize()
         w, h = mysize
         #w = 500
@@ -113,7 +113,10 @@ class MyFrame(wx.Frame):
 
         png1 = wx.Image(imageFile, wx.BITMAP_TYPE_ANY)
         pw, ph = png1.GetSize()
-        aspect_ratio = float(pw)/float(ph)
+        if float(ph) == 0.0:
+            aspect_ratio = float(pw)
+        else:
+            aspect_ratio = float(pw)/float(ph)
         new_w = 400
         new_h = 100
         png1.Rescale(int(new_w), int(new_h))
@@ -206,9 +209,15 @@ class MyFrame(wx.Frame):
         mysize = self.GetSize()
         w, h = mysize
         pw, ph = png.GetSize()
-        aspect_ratio = float(pw)/float(ph)
+        if float(ph) == 0.0:
+            aspect_ratio = float(pw)
+        else:
+            aspect_ratio = float(pw)/float(ph)
         new_w = w*0.95
-        new_h = new_w/aspect_ratio
+        if aspect_ratio == 0:
+            new_h = new_w
+        else:
+            new_h = new_w/aspect_ratio
         if new_h > 100:
             new_h = 100
             new_w = aspect_ratio*new_h
