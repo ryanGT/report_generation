@@ -1,5 +1,6 @@
 import numpy
-from scipy import isscalar, shape, imag, real, array, angle
+from numpy import ndarray, array
+from scipy import isscalar, shape, imag, real, angle
 import sympy
 
 from IPython.Debugger import Pdb
@@ -81,7 +82,7 @@ def RowToLatex(rowin, fmt='%0.4g', eps=1e-12):
 
 def IsOneD(arrayin):
     """Check is arrayin is a one dimensional array (i.e. a vector)."""
-    if type(arrayin) == numpy.ndarray:
+    if isinstance(array, ndarray):
         if len(shape(arrayin)) == 1:
             return True
     return False
@@ -175,7 +176,7 @@ def ArrayToLaTex(arrayin, mylhs, fmt='%0.4g', ams=True, \
 def _ArrayToLaTex(arrayin, fmt='%0.4g'):
         outlist = []
         first = 1
-        for row in arrayin:
+        for row in arrayin.tolist():
             currow = RowToLatex(row)
             if first:
                 first = 0
