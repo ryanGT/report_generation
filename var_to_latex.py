@@ -1,6 +1,7 @@
 import numpy
 from numpy import ndarray, array, poly1d
 from scipy import isscalar, shape, imag, real, angle
+from scipy import isscalar, shape, imag, real, array, angle, matrix
 import sympy
 
 from IPython.Debugger import Pdb
@@ -86,6 +87,12 @@ def RowToLatex(rowin, fmt='%0.4g', eps=1e-12):
         return ComplexNumToStr(rowin, eps=eps, fmt=fmt)
     elif is_sympy(rowin):
         return sympy.latex(rowin, profile=sympy_profile)
+    elif type(rowin) == matrix:
+        strlist = []
+        for i in range(rowin.size):
+            item = rowin[0,i]
+            print '===========>',item,item.size,rowin[0,i]
+            strlist.append(ComplexNumToStr(item, eps=eps, fmt=fmt))
     else:
         strlist =  [ComplexNumToStr(item, eps=eps, fmt=fmt) for item in rowin]
     return ' & '.join(strlist)
