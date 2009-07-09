@@ -9,7 +9,7 @@ import time
 import rwkmisc
 #reload(rwkmisc)
 
-if len(sys.argv) > 0:
+if len(sys.argv) > 1:
     headless = int(sys.argv[1])
 else:
     headless = 0
@@ -261,48 +261,37 @@ class MyFrame(wx.Frame):
                 self.On_Tex_Button(evt)
             else:
                 self.On_Eqn_Tex_Button(evt)
-            #t1 = time.time()
-            #untitled_GIMP_id = get_Untitled_GIMP()
             GIMP_id = read_window_id()
-            #t2 = time.time()
             if self.my_id is None:
                 self.my_id = latex_eqn_preview_id()
-            #t3 = time.time()
             set_window_focus(GIMP_id)
-            #t4 = time.time()
             time.sleep(0.05)
             send_xdotool_cmd('key "F7"')
-            #t5 = time.time()
             set_window_focus(self.my_id)
-            #t6 = time.time()
-##             print('In Python, t6-t1=%s' % (t6-t1))
-##             for i in range(1, 6):
-##                 cur_diff = 't%s-t%s' % (i+1, i)
-##                 exec('cur_t = '+cur_diff)
-##                 print(cur_diff + '=%s' % cur_t)
 
-        elif keycode==78 and evt.ControlDown():#ctrl + n
-            if not (evt.ShiftDown() or evt.AltDown()):
-                self.text.SetValue("")
+        elif keycode==77 and evt.ControlDown():#ctrl + m
+            #new equation without clearing the text box
             GIMP_id = read_window_id()
-            #print('activating window %s' % GIMP_id)
-            #set_window_focus(GIMP_id)
             activate_window(GIMP_id)
             time.sleep(0.25)
-            #print('sending shift+F8')
             send_xdotool_cmd('key "shift+F8"')
-        elif keycode==67 and evt.ControlDown():#ctrl + c
+        elif keycode==78 and evt.ControlDown():#ctrl + n
+            #new equation and clear the text box
+            self.text.SetValue("")
+            GIMP_id = read_window_id()
+            activate_window(GIMP_id)
+            time.sleep(0.25)
+            send_xdotool_cmd('key "shift+F8"')
+        elif keycode==69 and evt.ControlDown():#ctrl + e
             self.text.SetValue("")
         elif keycode==344:#F5
-            #GIMP_list = get_window_ids('search --title GIMP')#'search --title --onlyvisible GIMP'
-            #print('GIMP_list=%s' % GIMP_list)
             untitled_GIMP_id = get_Untitled_GIMP()
             if untitled_GIMP_id:
                 activate_window(untitled_GIMP_id)
                 send_xdotool_cmd('key "F11"')
                 return
-        #print('keycode=%s' % keycode)
-        #print('evt.ControlDown()=%s' % evt.ControlDown())
+        print('keycode=%s' % keycode)
+        print('evt.ControlDown()=%s' % evt.ControlDown())
         if keycode not in flist:
             evt.Skip()
             return
