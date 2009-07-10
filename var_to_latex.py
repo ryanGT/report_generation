@@ -1,5 +1,5 @@
 import numpy
-from numpy import ndarray, array
+from numpy import ndarray, array, poly1d
 from scipy import isscalar, shape, imag, real, angle
 import sympy
 
@@ -33,10 +33,20 @@ def AbsEpsilonCheck(val, eps=1e-12):
         return val
 
 
-def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False):
-    #print('In ComplexNumToStr, val='+str(val))
+def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False, \
+                    debug=0):
+    #Note that this also becomes the default class for all elements of
+    #arrays, so the possibility of those elements being sympy
+    #expressions or something exists.
+    if debug:
+        print('In ComplexNumToStr, val='+str(val))
+        print('type(val)=%s' % type(val))
     if hasattr(val,'ToLatex'):
         return val.ToLatex(eps=eps, fmt=fmt)
+    elif is_sympy(val):
+        sympy_out = sympy.latex(val, profile=sympy_profile)
+        print('sympy_out='+sympy_out)
+        return sympy_out
     val = AbsEpsilonCheck(val)#this zeros out any vals that have very small absolute values
     test = bool(isinstance(val, complex))
     #print('test = '+str(test))
@@ -236,7 +246,7 @@ def is_sympy(myvar):
 
 def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
                     fmt='%0.5g', eps=1.0e-12, replacelist=None, \
-                    **kwargs):
+                    debug=0, **kwargs):
     """Convert variable myvar to LaTeX by checking whether
     or not it is a scalar.
 
@@ -249,6 +259,10 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
     will contain only one line.
 
     env may be either 'equation' or 'eqnarray'."""
+    if debug:
+        print('mylhs=%s' % mylhs)
+        print('myvar=%s' % myvar)
+        print('type(myvar)=%s' % type(myvar))
     if hasattr(myvar,'ToLatex'):
         #print('calling ToLatex method')
         strout = myvar.ToLatex(fmt=fmt, eps=eps)
@@ -263,6 +277,8 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
     elif type(myvar) == dict:
         outlist = [mylhs +' = '+str(myvar)]
         env = 'equation'
+    elif isinstance(myvar, poly1d):
+        outlist, env = ArrayToLaTex(myvar.coeffs, mylhs, ams=ams)
     elif isscalar(myvar):
         outlist = [mylhs +' = '+NumToLatex(myvar)]
         env = 'equation'#need a number to latex convert that handles nice formatting
