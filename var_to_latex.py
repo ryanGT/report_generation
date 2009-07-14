@@ -73,7 +73,6 @@ def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False, \
                 outstr += ' \\; \\textrm{or} \\; ' +polarstr
             return outstr
     else:
-        print '======>>>>',val
         return fmt % val
             
     
@@ -91,7 +90,6 @@ def RowToLatex(rowin, fmt='%0.4g', eps=1e-12):
         strlist = []
         for i in range(rowin.size):
             item = rowin[0,i]
-            print '===========>',item,item.size,rowin[0,i]
             strlist.append(ComplexNumToStr(item, eps=eps, fmt=fmt))
     else:
         strlist =  [ComplexNumToStr(item, eps=eps, fmt=fmt) for item in rowin]
