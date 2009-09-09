@@ -15,7 +15,8 @@ skipfolders = ['html','thumbnails','blog_size','resized', \
                '.comments','900by600','cache','screensize', \
                'exclude']
 
-skipnames = ['index.html']
+skipnames = ['index.html','outline1.png', 'reminders1.png', \
+             'announcements1.png']
 
 thumbheader = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
@@ -119,7 +120,9 @@ def inskipfolders(pathin):
 def inskipnames(pathin):
    path, folder = os.path.split(pathin)
    return bool(folder in skipnames)
-   
+
+def dont_skip_me(pathin):
+   return not inskipnames(pathin)
    
 def pictsindir(folder, exts=['*.jpg']):
    """Find all the pictures in folder, not looking in subfolders, but
@@ -132,8 +135,11 @@ def pictsindir(folder, exts=['*.jpg']):
       curfiles = glob.glob(os.path.join(folder, pat.lower()))
       list2 = glob.glob(os.path.join(folder, pat.upper()))
       filt2 = [item for item in list2 if item not in curfiles]
-      picts += curfiles
-      picts += filt2
+      curfiles2 = filter(dont_skip_me, curfiles)
+      filt3 = filter(dont_skip_me, filt2)
+      picts += curfiles2
+      picts += filt3
+   print('picts = %s' % picts)
    return picts
 
 
@@ -482,9 +488,10 @@ class ImageResizerDir(Image_Finder):
    cacheimages (900by600)."""
    def __init__(self, folderpath, resizeclass=Thumbnail, \
                 resizefolder='thumbnails', size=[300,200], \
-                extlist=jpgextlist, skipdirs=myskipdirs):
+                extlist=jpgextlist, skipdirs=myskipdirs, \
+                skiplist=[]):
       Image_Finder.__init__(self, folderpath, extlist=extlist, \
-                            skipdirs=skipdirs)
+                            skipdirs=skipdirs, skiplist=skiplist)
       self.folder = folderpath
       self.resizeclass = resizeclass
       self.resizefolder = resizefolder
@@ -537,19 +544,19 @@ class ImageResizerDir(Image_Finder):
 class ImageResizer900by600(ImageResizerDir):
    def __init__(self, topdir, resizeclass=CacheImage, \
                 resizefolder='900by600', size=[900,600], \
-                extlist=jpgextlist):
+                extlist=jpgextlist, **kwargs):
       ImageResizerDir.__init__(self, topdir, resizeclass=resizeclass, \
                                resizefolder=resizefolder, size=size, \
-                               extlist=extlist)
+                               extlist=extlist, **kwargs)
 
 
 class ImageResizerDVD(ImageResizerDir):
    def __init__(self, topdir, resizeclass=DVDImage, \
                 resizefolder='DVD_size', size=[720,480], \
-                extlist=jpgextlist):
+                extlist=jpgextlist, **kwargs):
       ImageResizerDir.__init__(self, topdir, resizeclass=resizeclass, \
                                resizefolder=resizefolder, size=size, \
-                               extlist=extlist)
+                               extlist=extlist, **kwargs)
 
    
 
@@ -559,9 +566,9 @@ class ThumbNailPage(Image_Finder):
                 extlist=jpgextlist, contentlist=[], \
                 HTMLclass=HTMLImage, skipdirs=myskipdirs, \
                 screensizedir='screensize', \
-                bodyin=[]):
+                bodyin=[], **kwargs):
       Image_Finder.__init__(self, folder, extlist=extlist, \
-                            skipdirs=skipdirs)
+                            skipdirs=skipdirs, **kwargs)
       self.folder = folder
       self.header = thumbheader.replace('%TITLE%', str(title))
       self.extlist = extlist
@@ -813,11 +820,18 @@ class MainPageMaker2:
       self.Screen_Size_Maker = ImageResizer900by600(folder, \
                                                     resizefolder=screensizedir,\
                                                     size=screensizesize, \
-                                                    extlist=imageextlist)
+                                                    extlist=imageextlist, \
+                                                    skiplist=skipnames)
+      self.Screen_Size_Maker.Find_All_Images()
+      print('Screen_Size_Maker.imagepaths=')
+      for item in self.Screen_Size_Maker.allimagepaths:
+         print item
+         
       self.Thumbnail_Maker = ImageResizerDir(folder, \
                                              resizefolder=thumbdir,\
                                              size=thumbsize, \
-                                             extlist=imageextlist)
+                                             extlist=imageextlist,
+                                             skiplist=skipnames)
 
    def Go(self, toplevel_html_list=[]):
       self.Screen_Size_Maker.ResizeAll()
@@ -827,7 +841,8 @@ class MainPageMaker2:
                                               contentlist=self.extlist, \
                                               HTMLclass=self.HTMLclass, \
                                               title = self.title, \
-                                              screensizedir=self.screensizedir)
+                                              screensizedir=self.screensizedir, \
+                                              skiplist=skipnames)
       for root, dirs, files in os.walk(self.mainfolder):
          if (not inskipfolders(root)) and (haspicts(root, \
                                                     self.extlist+['.rst'])):
@@ -851,7 +866,8 @@ class MainPageMaker2:
                                               contentlist=self.extlist, \
                                               bodyin=bodyin, \
                                               title = title, \
-                                              screensizedir=self.screensizedir)
+                                              screensizedir=self.screensizedir, \
+                                              skiplist=skipnames)
             curpage.Create_Most(bl=(not toplevel))
 
       

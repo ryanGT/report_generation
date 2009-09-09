@@ -56,7 +56,7 @@ class center_decorator(rst_decorator):
         self.ws = ws
 
         
-    def __call__(self, listin):
+    def __call__(self, listin, ws=' '*4):
         if type(listin) == str:
             listin = [listin]
         line1 = '.. container:: center'

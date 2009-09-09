@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os, copy, re, shutil
 import pytexutils
 
@@ -7,6 +8,7 @@ import pdb
 from pytexutils import break_at_pipes, OptionsDictFromList
 
 from rst_creator import *
+import txt_mixin
 
 class list_regexp_replacer:
     """A class for running specialized regexp search and replace on
@@ -40,22 +42,22 @@ class list_regexp_replacer:
         return linein
 
 
-ws = ' '*4
+ws = ' '*2
 
 
 class rst_list_level_1(rst_decorator):
     def __call__(self, stringin):
-        return '* '+ stringin
+        return '- '+ stringin
 
 
 class rst_list_level_2(rst_decorator):
     def __call__(self, stringin):
-        return ws + '* ' + stringin
+        return ws + '- ' + stringin
 
 
 class rst_list_level_3(rst_decorator):
     def __call__(self, stringin):
-        return ws*2 + '* ' + stringin
+        return ws*2 + '- ' + stringin
 
 
 class section_to_level_1(list_regexp_replacer):
@@ -119,7 +121,7 @@ class pyp_to_rst(object):
     def __init__(self, pyppath):
         self.pyp_path = pyppath
         self.main_dir, self.pyp_name = os.path.split(self.pyp_path)
-        self.pyp_list = pytexutils.readfile(pyppath)
+        self.pyp_list = txt_mixin.txt_list(pytexutils.readfile(pyppath))
         self.rst_list = copy.copy(self.pyp_list)
         path_no_ext, ext = os.path.splitext(pyppath)
         self.rst_path = path_no_ext+'.rst'
@@ -271,9 +273,24 @@ class Beamer_to_rst_paper(pyp_to_rst):
                            two_asterisks_to_list_level_1(), \
                            three_asterisks_to_list_level_2(), \
                            centered_image()]
-        
+
+    def fix_nested_lists(self):
+        """rst really prefers that a new nest level be preceded by a
+        blank line, so this method will find all level 3 bullets that
+        are preceded by something other than a level 3 bullet and
+        insert a blank line before it."""
+        levels_to_fix = [2,3,4]
+        for level in levels_to_fix:
+            pat = '*' * level
+            inds = self.rst_list.findall(pat)
+            inds.reverse()
+            first_inds = [item for item in inds if (item-1) not in inds]
+
+            for ind in first_inds:
+                self.rst_list.insert(ind, '')
         
     def convert(self):
+        self.fix_nested_lists()
         for converter in self.converters:
             self.rst_list = converter.replace_list(self.rst_list)
         return self.rst_list
@@ -308,7 +325,8 @@ class Beamer_to_s5_pres(Beamer_to_rst_paper):
 
 
     def cmd(self):
-        return 'python myrst2s5.py --theme-url="ui/advanced_utf" %s %s' % (self.rst_path, self.html_path)
+        return 'python myrst2s5.py --theme-url="ui/advanced_utf" %s %s' % \
+               (self.rst_path, self.html_path)
         
 
     def convert(self):
@@ -391,10 +409,12 @@ if __name__ == '__main__':
     #mypath = os.path.join(mydir, myfile)
     #mypyp = Beamer_to_rst_paper(mypath)
     
-    mydir = rwkos.FindFullPath('siue/classes/mechatronics/2008/python_intro')
-    myfile = 'python_intro.pyp'
+    #mydir = rwkos.FindFullPath('siue/classes/mechatronics/2008/python_intro')
+    #myfile = 'python_intro.pyp'
+    mydir = rwkos.FindFullPath('siue/classes/mechatronics/2008/lectures/week_01/day_01')
+    myfile = 'what_is_mechatronics.pyp'
     mypath = os.path.join(mydir, myfile)
-    mypyp = Beamer_to_s5_pres(mypath, title='Introduction to Python')
+    mypyp = Beamer_to_s5_pres(mypath, title='Introduction to Mechatronics')
     mypyp.convert()
     mypyp.save()
     mypyp.copy_stuff()
