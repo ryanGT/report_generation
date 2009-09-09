@@ -265,7 +265,7 @@ class MyFrame(wx.Frame):
             if self.my_id is None:
                 self.my_id = latex_eqn_preview_id()
             set_window_focus(GIMP_id)
-            time.sleep(0.05)
+            time.sleep(0.5)
             send_xdotool_cmd('key "F7"')
             set_window_focus(self.my_id)
 

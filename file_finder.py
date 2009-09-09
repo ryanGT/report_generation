@@ -1,6 +1,9 @@
-import os, glob, time, md5sum
+import os, glob, time, md5sum, pdb
 import rwkos
 
+def dont_fitler_me(pathin, skipnames):
+    folder, filename = os.path.split(pathin)
+    return bool(filename not in skipnames)
 
 def find_folder_contents(pathin):
     all_contents = os.listdir(pathin)
@@ -46,10 +49,12 @@ def search_for_files_in_folder(pathin, extlist):
     return filelist
 
 
-def search_for_files_in_folder_v2(pathin, extlist=None):
+def search_for_files_in_folder_v2(pathin, extlist=None, skiplist=[]):
     if type(extlist) == str:
         extlist = [extlist]
-    all_files = find_all_files_in_folder(pathin)
+    temp_files = find_all_files_in_folder(pathin)
+    all_files = [item for item in temp_files if \
+                 dont_fitler_me(item, skiplist)]
     if not extlist:
         all_files.sort()
         return all_files
@@ -62,8 +67,10 @@ def search_for_files_in_folder_v2(pathin, extlist=None):
     return filelist
 
 
-def Search_for_images_in_folder(pathin, extlist=['.jpg','.jpeg']):
-    image_list = search_for_files_in_folder_v2(pathin, extlist)
+def Search_for_images_in_folder(pathin, extlist=['.jpg','.jpeg'], \
+                                skiplist=[]):
+    image_list = search_for_files_in_folder_v2(pathin, extlist, \
+                                               skiplist=skiplist)
     image_list.sort()
     return image_list
 
@@ -71,13 +78,14 @@ def Search_for_images_in_folder(pathin, extlist=['.jpg','.jpeg']):
 
 class File_Finder(object):
     def __init__(self, folderpath, extlist=None, \
-                 skipdirs=['.comments']):
+                 skipdirs=['.comments'], skiplist=[]):
        self.folder = folderpath
        if extlist:
            self.extlist = clean_extlist(extlist)
        else:
            self.extlist = extlist
        self.skipdirs = skipdirs
+       self.skiplist = skiplist
 
 
     def Find_All_Folders(self):
@@ -124,15 +132,18 @@ def is_thumb_dir(pathin):
     
 class Image_Finder(File_Finder):
     def __init__(self, folderpath, extlist=['.jpg', '.jpeg'], \
-                 skipdirs=['.comments','thumbnails','900by600','screensize']):
+                 skipdirs=['.comments','thumbnails',\
+                           '900by600','screensize'], \
+                 skiplist=[]):
         File_Finder.__init__(self, folderpath, extlist=extlist, \
-                             skipdirs=skipdirs)
+                             skipdirs=skipdirs, skiplist=skiplist)
         
 
     
     def Find_Images(self):
        self.imagepaths = Search_for_images_in_folder(self.folder, \
-                                                 extlist=self.extlist)
+                                                     extlist=self.extlist, \
+                                                     skiplist=self.skiplist)
        return self.imagepaths
        
 
@@ -146,8 +157,11 @@ class Image_Finder(File_Finder):
           self.FindAllPictureFolders()
        self.allimagepaths = []
        for folder in self.allfolders:
+          #if folder == '/home/ryan/siue/classes/mechatronics/2009/lectures/08_26_09':
+          #     pdb.set_trace()
           curimages = Search_for_images_in_folder(folder, \
-                                                  extlist=self.extlist)
+                                                  extlist=self.extlist, \
+                                                  skiplist=self.skiplist)
           self.allimagepaths.extend(curimages)
        return self.allimagepaths
 

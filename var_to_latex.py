@@ -10,7 +10,8 @@ s = sympy.var('s')
 sympy_profile = {'mainvar' : s, \
                  'mat_str' : 'bmatrix', \
                  'mat_delim' : None, \
-                 'inline' : None, \
+                 #'inline' : None, \
+                 'mode' : 'plain', \
                  'descending' : True,
                  }
                  
