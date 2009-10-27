@@ -101,6 +101,19 @@ class rst_section_level_3(rst_decorator):
         return listout
 
 
+class rst_title_dec(rst_decorator):
+    def __call__(self, stringin):
+        dec_line = '='*(len(stringin)+1)
+        listout = [dec_line, stringin, dec_line, '']
+        return listout
+
+class rst_subtitle_dec(rst_decorator):
+    def __call__(self, stringin):
+        dec_line = '~'*(len(stringin)+1)
+        listout = [stringin, dec_line, '']
+        return listout
+
+
 
 
 class rst_file(txt_mixin.txt_file_with_list):
