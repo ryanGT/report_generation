@@ -411,8 +411,8 @@ if __name__ == '__main__':
     
     #mydir = rwkos.FindFullPath('siue/classes/mechatronics/2008/python_intro')
     #myfile = 'python_intro.pyp'
-    mydir = rwkos.FindFullPath('siue/classes/mechatronics/2008/lectures/week_01/day_01')
-    myfile = 'what_is_mechatronics.pyp'
+    mydir = rwkos.FindFullPath('siue/classes/mechatronics/2009/lectures/10_28_09/')
+    myfile = 'intro_to_PSoC.pyp'
     mypath = os.path.join(mydir, myfile)
     mypyp = Beamer_to_s5_pres(mypath, title='Introduction to Mechatronics')
     mypyp.convert()
