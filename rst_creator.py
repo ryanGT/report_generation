@@ -114,7 +114,7 @@ class rst_subtitle_dec(rst_decorator):
         return listout
 
 class rst_section_dec:
-    def __init__(self, symbol='+'):
+    def __init__(self, symbol='='):
         self.symbol = symbol
 
     def __call__(self, stringin):
@@ -122,6 +122,14 @@ class rst_section_dec:
         listout = [stringin, dec_line, '']
         return listout
 
+class rst_subsection_dec(rst_section_dec):
+    def __init__(self, symbol='-'):
+        self.symbol = symbol
+
+
+class rst_subsubsection_dec(rst_section_dec):
+    def __init__(self, symbol='+'):
+        self.symbol = symbol
 
 
 

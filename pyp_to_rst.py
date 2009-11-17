@@ -75,6 +75,53 @@ class section_to_level_1(list_regexp_replacer):
             return linein
     
 
+class section_to_section(list_regexp_replacer):
+    def __init__(self, pat='^s:(.*)', **kwargs):
+        list_regexp_replacer.__init__(self, pat=pat, **kwargs)
+        self.decorator = rst_section_dec()
+
+
+    def replace_line(self, linein):
+        q = self.p.search(linein)
+        if q:
+            section = q.group(1)
+            section = section.strip()
+            return self.decorator(section)
+        else:
+            return linein
+    
+class subsection_to_subsection(section_to_section):
+    def __init__(self, pat='^ss:(.*)', **kwargs):
+        list_regexp_replacer.__init__(self, pat=pat, **kwargs)
+        self.decorator = rst_subsection_dec()
+
+
+class subsubsection_to_subsubsection(subsection_to_subsection):
+    def __init__(self, pat='^sss:(.*)', **kwargs):
+        list_regexp_replacer.__init__(self, pat=pat, **kwargs)
+        self.decorator = rst_subsubsection_dec()
+
+
+class figure_ref(list_regexp_replacer):
+    def __init__(self, pat=r'([Ff]igure[ ~]\\ref{.*?})', **kwargs):
+        list_regexp_replacer.__init__(self, pat=pat, **kwargs)
+
+
+    def replace_line(self, linein):
+        q = self.p.search(linein)
+        if q:
+            return self.p.sub('`\\1`', linein)
+        else:
+            return linein
+
+class lstinline(figure_ref):
+    def __init__(self, pat=r'(\\lstinline!.*?!)', **kwargs):
+        list_regexp_replacer.__init__(self, pat=pat, **kwargs)
+
+class inlineeq(figure_ref):
+    def __init__(self, pat=r'(\$.*?\$)', **kwargs):
+        list_regexp_replacer.__init__(self, pat=pat, **kwargs)
+    
 class one_asterisk_to_level_2(section_to_level_1):
     def __init__(self, pat='^\* (?:[vf:]*)(.*)', **kwargs):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
@@ -299,11 +346,16 @@ class Beamer_to_rst_paper(pyp_to_rst):
 class pyp_doc_to_rst_paper(Beamer_to_rst_paper):
     def __init__(self, pyppath):
         pyp_to_rst.__init__(self, pyppath)
-        self.converters = [section_to_level_1(), \
+        self.converters = [section_to_section(), \
+                           subsection_to_subsection(), \
+                           subsubsection_to_subsubsection(), \
                            one_asterisks_to_list_level_1(), \
                            two_asterisks_to_list_level_2(), \
                            three_asterisks_to_list_level_3(), \
-                           centered_figure_replacer()]
+                           centered_figure_replacer(), \
+                           figure_ref(), \
+                           lstinline(), \
+                           inlineeq()]
         
         
 
@@ -403,6 +455,34 @@ class Beamer_to_s5_pres(Beamer_to_rst_paper):
 #  appropriate rst line or lines after applying a list of rules.
 
 if __name__ == '__main__':
+
+    from optparse import OptionParser
+
+    usage = 'usage: %prog [options] inputfile.pyp'
+    parser = OptionParser(usage)
+
+
+    parser.add_option("-r", "--runlatex", dest="runlatex", \
+                      help="Run LaTeX after presentation is converted to tex.", \
+                      default=1, type="int")
+
+    parser.add_option("-s", "--sectiond", dest="sections", \
+                      help="Indices of the sections of the document that you want converted to LaTeX.", \
+                      default='', type="string")
+
+    parser.add_option("-o", "--output", dest="output", \
+                      help="Desired output path or filename.", \
+                      default='', type="string")
+
+
+    (options, args) = parser.parse_args()
+
+    print('options='+str(options))
+    print('args='+str(args))
+
+    secstr = options.sections
+    pathout = options.output
+    
     import rwkos
     #mydir = rwkos.FindFullPath('siue/Research/papers/SciPy2008')
     #myfile = 'presentation_SciPy_2008_v2.pyp'
@@ -411,11 +491,14 @@ if __name__ == '__main__':
     
     #mydir = rwkos.FindFullPath('siue/classes/mechatronics/2008/python_intro')
     #myfile = 'python_intro.pyp'
-    mydir = rwkos.FindFullPath('siue/classes/mechatronics/2009/lectures/10_28_09/')
-    myfile = 'intro_to_PSoC.pyp'
-    mypath = os.path.join(mydir, myfile)
-    mypyp = Beamer_to_s5_pres(mypath, title='Introduction to Mechatronics')
+    #mydir = rwkos.FindFullPath('siue/classes/mechatronics/2009/lectures/10_28_09/')
+    #myfile = 'intro_to_PSoC.pyp'
+    #mypath = os.path.join(mydir, myfile)
+    mypath = args[0]
+    mypyp = pyp_doc_to_rst_paper(mypath)
+    #mypyp = Beamer_to_s5_pres(mypath)
+    #mypyp = Beamer_to_s5_pres(mypath, title='Introduction to Mechatronics')
     mypyp.convert()
     mypyp.save()
-    mypyp.copy_stuff()
-    mypyp.rst_to_s5()
+    #mypyp.copy_stuff()
+    #mypyp.rst_to_s5()
