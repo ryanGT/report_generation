@@ -76,7 +76,7 @@ class section_to_level_1(list_regexp_replacer):
     
 
 class section_to_section(list_regexp_replacer):
-    def __init__(self, pat='^s:(.*)', **kwargs):
+    def __init__(self, pat='^s\\**: *(.*)', **kwargs):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
         self.decorator = rst_section_dec()
 
@@ -91,13 +91,13 @@ class section_to_section(list_regexp_replacer):
             return linein
     
 class subsection_to_subsection(section_to_section):
-    def __init__(self, pat='^ss:(.*)', **kwargs):
+    def __init__(self, pat='^ss\\**: *(.*)', **kwargs):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
         self.decorator = rst_subsection_dec()
 
 
 class subsubsection_to_subsubsection(subsection_to_subsection):
-    def __init__(self, pat='^sss:(.*)', **kwargs):
+    def __init__(self, pat='^sss\\**: *(.*)', **kwargs):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
         self.decorator = rst_subsubsection_dec()
 
