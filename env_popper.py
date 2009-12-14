@@ -539,7 +539,7 @@ class py_body(python_report_env):
                 if lhs:
                     myvar = eval(lhs, self.namespace)
                     if usetex:
-                        outlines, env = VL.VariableToLatex(myvar, lhs)
+                        outlines, env = VL.VariableToLatex(myvar, lhs,**kwargs)
                         if len(outlines) == 1:
                             eqnlines = ['eqn{'+env+'|'+outlines[0]+'}']
                         else:

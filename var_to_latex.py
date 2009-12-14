@@ -3,6 +3,11 @@ from numpy import ndarray, array, poly1d
 from scipy import isscalar, shape, imag, real, angle
 from scipy import isscalar, shape, imag, real, array, angle, matrix
 import sympy
+try:
+    import quantities,re
+    quantities_imported = True
+except:
+    quantities_imported = False
 
 from IPython.Debugger import Pdb
 import pdb
@@ -14,6 +19,7 @@ sympy_profile = {'mainvar' : s, \
                  #'inline' : None, \
                  'mode' : 'plain', \
                  'descending' : True,
+                 'inline':None,
                  }
                  
 
@@ -250,6 +256,20 @@ def is_sympy(myvar):
     out = isinstance(myvar, sympy.core.basic.Basic)
     return out
 
+def is_quantity(myvar):
+    if quantities_imported:
+        if isinstance(myvar,quantities.Quantity):
+            return True
+        else:
+            return False
+    else:
+        return False
+
+def format_right_side(rs):
+    latexmap = {'**':'^'}
+    for py,ltx in latexmap.items():
+        rs = rs.replace(py,ltx)
+    return rs
 
 def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
                     fmt='%0.5g', eps=1.0e-12, replacelist=None, \
@@ -291,6 +311,11 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         env = 'equation'#need a number to latex convert that handles nice formatting
     elif is_sympy(myvar):
         outlist = [mylhs +' = '+sympy.latex(myvar, profile=sympy_profile)]
+        env = 'equation'
+    elif is_quantity(myvar):
+        qstr = myvar.__str__().replace(' ','\;')
+        qstr = format_right_side(qstr)
+        outlist = [mylhs+'='+qstr]
         env = 'equation'
     else:
         #print('calling ArrayToLaTex on variable with lhs '+mylhs+'.  str(myvar)='+str(myvar))
