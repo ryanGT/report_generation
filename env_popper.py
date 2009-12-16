@@ -536,7 +536,7 @@ class py_body(python_report_env):
                 lhs = find_lhs(line)
                 if echo:
                     pyp_out.append('code{'+line+'}')
-                if lhs:
+                if lhs and lhs.find('print')==-1: # added the .find('print') because print 'myvar = %s'%myvar will be found by find_lhs but we don't want it in the output
                     myvar = eval(lhs, self.namespace)
                     if usetex:
                         outlines, env = VL.VariableToLatex(myvar, lhs,**kwargs)
