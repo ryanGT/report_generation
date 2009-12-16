@@ -3,7 +3,6 @@ import os, glob, time, shutil
 from optparse import OptionParser
 from replacelist import ReplaceList
 from pytex import PythonFile
-
 import py2pyp
 
 import pyp_to_rst, rwkos
@@ -30,7 +29,11 @@ parser.add_option("-e", "--echo", dest="echo", \
 parser.add_option("-n", "--nohead", dest="nohead", \
                   help="Save with no header.", \
                   default=0, type="int")
-                  
+
+parser.add_option("-c", "--clean", dest="clean_output", \
+                  help="Remove all the files created from this script and LaTeX.", \
+                  default=1, type="int")
+
 (options, args) = parser.parse_args()
 
 print('options='+str(options))
@@ -48,6 +51,7 @@ py_path = rwkos.FindFullPath(args[0])
 
 raw = 0
 pne, ext = os.path.splitext(py_path)
+pathto,basename = os.path.split(pne)
 if pne[-4:] == '_raw':
     raw = 1
     clean_path = pne[0:-4]+'.py'
@@ -80,9 +84,9 @@ if append_show:
 pyp_path = mypy.save()
 
 if options.nohead:
-    cmd = 'document_gen.py -n 1 %s' % pyp_path
+    cmd = 'document_gen.py -n 1 -c %s %s' % (options.clean_output,pyp_path)
 else:
-    cmd = 'document_gen.py %s' % pyp_path
+    cmd = 'document_gen.py -c %s %s' % (options.clean_output,pyp_path)
 
 os.system(cmd)
 
@@ -90,3 +94,5 @@ os.system(cmd)
 #findlist=[]
 #findlist.extend(tp.FindLHSs())
 #replacelist.AppendFRFile(findlist)
+if options.clean_output:
+    os.unlink(pyp_path)    

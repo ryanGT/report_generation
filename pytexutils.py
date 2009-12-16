@@ -14,6 +14,13 @@ floatre = re.compile(r'[+-]*\d*\.*\d+')
 
 ws = ' '*4
 
+def cleanLatexOutputFiles(pathto,basename,exts=['log','aux','out']):
+    for ext in exts:
+        curfile = basename+'.'+ext
+        curpath = os.path.join(pathto,curfile)
+        if os.path.exists(curpath):
+            os.unlink(curpath)
+
 def OptionsDictFromList(listin, optdict=None):
     loners = []
     if optdict is None:

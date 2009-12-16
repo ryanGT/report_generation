@@ -265,12 +265,6 @@ def is_quantity(myvar):
     else:
         return False
 
-def format_right_side(rs):
-    latexmap = {'**':'^'}
-    for py,ltx in latexmap.items():
-        rs = rs.replace(py,ltx)
-    return rs
-
 def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
                     fmt='%0.5g', eps=1.0e-12, replacelist=None, \
                     debug=0, **kwargs):
@@ -313,8 +307,7 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         outlist = [mylhs +' = '+sympy.latex(myvar, profile=sympy_profile)]
         env = 'equation'
     elif is_quantity(myvar):
-        qstr = myvar.__str__().replace(' ','\;')
-        qstr = format_right_side(qstr)
+        qstr = str(myvar).replace(' ','\;')
         outlist = [mylhs+'='+qstr]
         env = 'equation'
     else:
