@@ -42,19 +42,25 @@ def ReadFRPatternsFile(frfilename):#, keepblanks=False):
             else:
                 curtup = (curfind, currep)
             frlist.append(curtup)
-            print('curtup='+str(curtup))
+#            print('curtup='+str(curtup))
        # else:
        #     blanklist.append(curfind)
        #     print('skipping:'+curfind)
     return frlist#, blanklist
 
 
-def AppendFRPatterns(newlist, frpath='frpatterns.txt', append=True):
+def AppendFRPatterns(newlist, frpath='frpatterns.txt', append=True,removeDoubles=True):
+    newlist.sort()
     if (not os.path.exists(frpath)) or (not append):
         f = open(frpath, 'w')
     else:
+        if removeDoubles:
+            curList = ReadFindsFromPatternsFile(frpath)
+            curList.sort()
+            outlist = [i for i in newlist if i.strip() not in curList]
+            outlist.sort()
         f=open(frpath,'a')
-    replist = [item.replace('{\\it','{\\\\it') for item in newlist]
+    replist = [item.replace('{\\it','{\\\\it') for item in outlist]
     replist = [item.strip() for item in replist]
     outlist = [item +' &\n' for item in replist]
     f.writelines(outlist)

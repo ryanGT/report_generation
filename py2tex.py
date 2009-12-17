@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os, glob, time, shutil
 from optparse import OptionParser
-from replacelist import ReplaceList
+from replacelist import ReplaceList,AppendFRPatterns
 from pytex import PythonFile
 import py2pyp
 
@@ -96,3 +96,8 @@ os.system(cmd)
 #replacelist.AppendFRFile(findlist)
 if options.clean_output:
     os.unlink(pyp_path)    
+
+#append any new potential replacements
+findlist=[]
+findlist.extend(mypy.FindLHSs())
+AppendFRPatterns(findlist)

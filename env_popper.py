@@ -522,6 +522,7 @@ ignore_list = ['!','-','=']
 class py_body(python_report_env):
     def To_PYP(self, usetex=False, echo=False, **kwargs):
         pyp_out = []
+        self.lhslist = []
         if self.list[0].find('#pybody') == 0:
             self.list.pop(0)
         for line in self.list:
@@ -547,6 +548,7 @@ class py_body(python_report_env):
                         pyp_out.extend(eqnlines)
                     else:
                         pyp_out.append('%s = %s' % (lhs, myvar))
+                    self.lhslist.append(lhs)
         return pyp_out
 
 
