@@ -1,4 +1,4 @@
-import Image, os, glob, pdb
+import Image, os, glob, pdb, shutil
 
 from IPython.Debugger import Pdb
 from numpy import mod
@@ -10,7 +10,7 @@ import rwkos
 reload(rwkos)
 
 from rst_creator import rst2html_fullpath
-
+import copy
 skipfolders = ['html','thumbnails','blog_size','resized', \
                '.comments','900by600','cache','screensize', \
                'exclude']
@@ -572,8 +572,8 @@ class ThumbNailPage(Image_Finder):
       self.folder = folder
       self.header = thumbheader.replace('%TITLE%', str(title))
       self.extlist = extlist
-      self.body = bodyin
-      self.contentlist = contentlist
+      self.body = copy.copy(bodyin)
+      self.contentlist = copy.copy(contentlist)
       #print('bodyin = '+str(bodyin))
       self.htmldir = htmldir
       self.thumbdir = thumbdir
@@ -641,10 +641,13 @@ class ThumbNailPage(Image_Finder):
        self.body.extend(self.table)
 
 
-   def Add_bottom_link(self, br=True):
+   def Add_bottom_link(self, br=True, dest=None):
+      if dest is None:
+         dest = '../index.html'
       if br:
          self.body.append('<br>')
-      self.body.append('<a href="../index.html">up</a>')
+      print('dest = '+dest)
+      self.body.append('<a href="%s">up</a>' % dest)
 
 
    def _build_body_str(self):
@@ -738,14 +741,14 @@ class DirectoryPage(ThumbNailPage):
             ind = names.index('index.rst')
             return top_level_rsts[ind]
 
-   def Create_Most(self, bl=True):
+   def Create_Most(self, bl=True, bl_dest=None):
       index_rst = self.find_top_level_index_rst()
       if index_rst:
          rst2html_fullpath(index_rst)
          return
       self.FindSubFolders()
       if bl:
-         self.Add_bottom_link(br=False)
+         self.Add_bottom_link(br=False, dest=bl_dest)
       self.AddSubFolderLinks()
       self.FindImages()      
       self.GenerateHTMLs()
@@ -755,9 +758,64 @@ class DirectoryPage(ThumbNailPage):
       self.Add_Other_Links(['.pdf'], "PDF Files:")
       self.Add_Other_Links(['.html'], "HTML Files:")
       if bl:
-         self.Add_bottom_link()
+         self.Add_bottom_link(dest=bl_dest)
       self.ToFile()
 
+class DirectoryPage_courses(DirectoryPage):
+   """I am using this page in course websites.  The only difference
+   from DirectoryPage is how it handles existing rst files.  It
+   searches specifically for index_*.rst, copies it to index.rst if it
+   exists, and then calls rst2html.  This opens up the option of
+   automatically creating index.rst files and not mistaking them for
+   hand written ones."""
+   def find_top_level_index_rst(self, runrst=True, add_up_link=True):
+      top_level_rsts = self.Find_Top_Level_Files(['*.rst'])
+      ind = None
+      if len(top_level_rsts) > 0:
+         for i, curpath in enumerate(top_level_rsts):
+            folder, name = os.path.split(curpath)
+            if name.find('index_') > -1:
+               dst = os.path.join(folder, 'index.rst')
+               shutil.copyfile(curpath, dst)
+               rst2html_fullpath(dst, add_up_link=add_up_link)
+               ind = i
+            else:
+               if runrst:
+                  rst2html_fullpath(curpath, add_up_link=add_up_link)
+      if ind:
+         return top_level_rsts[ind]
+      else:
+         return None
+
+link_dict = {'.py':'Python Files', \
+             '.m':'MATLAB Files', \
+             '.pdf':'PDF Files', \
+             '.html':'HTML Files'}
+            
+class DirectoryPage_no_images(DirectoryPage_courses):
+   def Create_Most(self, bl=True, bl_dest=None, \
+                   extlist=['html','pdf','py','m'],\
+                   add_up_link=True):
+      index_rst = self.find_top_level_index_rst()
+      clean_ext_list = []
+      for item in extlist:
+         if item[0] != '.':
+            item = '.' + item
+         clean_ext_list.append(item)
+      if index_rst:
+         rst2html_fullpath(index_rst, add_up_link=add_up_link)
+         return
+      self.FindSubFolders()
+      if bl:
+         self.Add_bottom_link(br=False, dest=bl_dest)
+      self.AddSubFolderLinks()
+      for item in clean_ext_list:
+         label = link_dict[item]
+         self.Add_Other_Links([item], label)
+      if bl:
+         self.Add_bottom_link(dest=bl_dest)
+      self.ToFile()
+   
 
 class DirectoryPage3(DirectoryPage, css_line_delete_mixin):
    def ToFile(self, name='index.html'):
@@ -833,7 +891,7 @@ class MainPageMaker2:
                                              extlist=imageextlist,
                                              skiplist=skipnames)
 
-   def Go(self, toplevel_html_list=[]):
+   def Go(self, toplevel_html_list=[], top_level_link=None):
       self.Screen_Size_Maker.ResizeAll()
       self.Thumbnail_Maker.ResizeAll()
       self.mainpage = self.DirectoryPageclass(self.mainfolder, \
@@ -865,10 +923,62 @@ class MainPageMaker2:
                                               HTMLclass=self.HTMLclass, \
                                               contentlist=self.extlist, \
                                               bodyin=bodyin, \
-                                              title = title, \
+                                              title=title, \
                                               screensizedir=self.screensizedir, \
                                               skiplist=skipnames)
-            curpage.Create_Most(bl=(not toplevel))
+            if toplevel:
+               if top_level_link is not None:
+                  curpage.Create_Most(bl=True, \
+                                      bl_dest=top_level_link)
+               else:
+                  curpage.Create_Most(bl=False)
+            else:
+               curpage.Create_Most(bl=True)
+
+
+class MainPageMaker_no_images:
+   """This class actually doesn't make any thumbnails, but it is left
+   here for consistency.  It will be used in course websites for
+   non-lecture folders like homework, projects, and labs, which
+   shouldn't have jpgs or pngs needing thumbnails.  The directories
+   are assumed to have mainly html and pdf files (though py and m
+   files are also acceptable)."""
+   def __init__(self, folder, title=None, body=None, \
+                extlist=['.html','.py','.pdf','.m'], \
+                DirectoryPageclass=DirectoryPage_no_images):
+      self.title = title
+      self.mainfolder = folder
+      self.extlist = extlist
+      self.DirectoryPageclass = DirectoryPageclass
+
+   def Go(self, toplevel_html_list=[], top_level_link=None):
+      self.mainpage = self.DirectoryPageclass(self.mainfolder, \
+                                              extlist=self.extlist, \
+                                              contentlist=self.extlist, \
+                                              title = self.title, \
+                                              skiplist=skipnames)
+      for root, dirs, files in os.walk(self.mainfolder):
+         print('root='+root)
+         #print('mainfolder='+self.mainfolder)
+         toplevel = (root == self.mainfolder)
+         if toplevel:
+            bodyin = toplevel_html_list
+            title = self.title
+         else:
+            bodyin = []
+            junk, foldername = os.path.split(root)
+            if self.title:
+               title = self.title+': '+foldername
+            else:
+               title = foldername
+         #print('bodyin = '+str(bodyin))
+         curpage = self.DirectoryPageclass(root, \
+                                           extlist=self.extlist, \
+                                           contentlist=self.extlist, \
+                                           bodyin=bodyin, \
+                                           title=title, \
+                                           skiplist=skipnames)
+         curpage.Create_Most(bl=True)
 
       
 if __name__ == '__main__':

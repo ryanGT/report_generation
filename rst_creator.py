@@ -201,9 +201,20 @@ class rst_file(txt_mixin.txt_file_with_list):
     def add_subsection(self, subsection_title):
         subsection_list = self.subsection_dec(subsection_title)
         self.list.extend(subsection_list)
-        
+
+
+def add_up_link_to_rst(pathin):
+    myfile = txt_mixin.txt_file_with_list(pathin)
+    inds = myfile.findall('index.html')
+    if not inds:
+        myfile.list.append('')
+        myfile.list.append('`up <../index.html>`_')
+        myfile.save(pathin)
+
                                          
-def rst2html_fullpath(pathin):
+def rst2html_fullpath(pathin, add_up_link=False):
+    if add_up_link:
+        add_up_link_to_rst(pathin)
     pne, ext = os.path.splitext(pathin)
     htmlpath = pne + '.html'
     if not rwkos.amiLinux():
