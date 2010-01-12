@@ -51,6 +51,7 @@ def ReadFRPatternsFile(frfilename):#, keepblanks=False):
 
 def AppendFRPatterns(newlist, frpath='frpatterns.txt', append=True,removeDoubles=True):
     newlist.sort()
+    outlist = newlist
     if (not os.path.exists(frpath)) or (not append):
         f = open(frpath, 'w')
     else:

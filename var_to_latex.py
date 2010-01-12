@@ -6,6 +6,7 @@ import sympy
 try:
     import quantities,re
     quantities_imported = True
+    from quantities import markup
 except:
     quantities_imported = False
 
@@ -266,7 +267,7 @@ def is_quantity(myvar):
         return False
 
 def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
-                    fmt='%0.5g', eps=1.0e-12, replacelist=None, \
+                    fmt='%0.9f', eps=1.0e-12, replacelist=None, \
                     debug=0, **kwargs):
     """Convert variable myvar to LaTeX by checking whether
     or not it is a scalar.
@@ -301,18 +302,25 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
     elif isinstance(myvar, poly1d):
         outlist, env = ArrayToLaTex(myvar.coeffs, mylhs, ams=ams)
     elif isscalar(myvar):
-        outlist = [mylhs +' = '+NumToLatex(myvar)]
+        outlist = [mylhs +' = '+NumToLatex(myvar,fmt=fmt)]
         env = 'equation'#need a number to latex convert that handles nice formatting
     elif is_sympy(myvar):
         outlist = [mylhs +' = '+sympy.latex(myvar, profile=sympy_profile)]
         env = 'equation'
     elif is_quantity(myvar):
-        qstr = str(myvar).replace(' ','\;')
-        outlist = [mylhs+'='+qstr]
+        #qstr = str(myvar).replace(' ','\\;')
+        if markup.config.use_unicode:
+            dims = myvar.dimensionality.unicode
+        else:
+            dims = myvar.dimensionality.string
+        mag = fmt%myvar.magnitude
+        out = mylhs+' = '+mag+r'\;'+unicode(dims,"utf-8")
+        #outlist = [mylhs+'='+unicode(qstr,"utf-8")]
+        outlist = [out]
         env = 'equation'
     else:
         #print('calling ArrayToLaTex on variable with lhs '+mylhs+'.  str(myvar)='+str(myvar))
-        outlist, env = ArrayToLaTex(myvar, mylhs, ams=ams)
+        outlist, env = ArrayToLaTex(myvar, mylhs, ams=ams,fmt=fmt)
     if replacelist is not None:
         outlist = replacelist.Replace(outlist)
     return outlist, env
