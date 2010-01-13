@@ -16,6 +16,10 @@ from docutils.parsers.rst import directives
 from var_to_latex import VariableToLatex
 from pytexutils import lhs
 import sys,traceback
+#from pygments_code_block_directive import *
+import pygments
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import LatexFormatter
 
 def parse_py_line(line):
     if line.find('=') != -1:
@@ -90,7 +94,35 @@ def py_role(role, rawtext, text, lineno, inliner,
     node = py(rawtext, latex)
     return [node], []
 
+class code_block(nodes.Element):
+    tagname = '#code_block'
+    def __init__(self, rawsource, latex,language):
+        nodes.Element.__init__(self, rawsource)
+        self.latex = latex
+        self.language = language
 
+class code_block_directive(rst.Directive):
+    has_content = True
+
+    required_arguments = 1
+    options_spec = {
+        'numbering':directives.unchanged,
+        }
+
+
+    def run(self):
+        language = self.arguments[0]
+        lexer = get_lexer_by_name(language)
+        code = ''
+        for line in self.content:
+            code+='%s\n'%line
+        latex_tokens = pygments.lex(code, lexer)
+        formatter = LatexFormatter()
+        latex = pygments.format(latex_tokens,formatter)
+        node = code_block(self.block_text,latex,language)
+        return [node]
+
+        
 
 class py_directive(rst.Directive):
     has_content = True
@@ -106,6 +138,7 @@ class py_directive(rst.Directive):
     option_spec = {'echo': directives.unchanged,
                    'fmt': directives.unchanged,
                    }
+    
 
 
     def run(self):
@@ -194,6 +227,12 @@ def visit_pyno(self,node):
 def depart_pyno(self,node):
     pass
 
+def visit_code_block(self,node):
+    self.body.extend(['\n\n%s\n'%node.latex])
+
+def depart_code_block(self,node):
+    pass
+
 
 
 # Latex Math Stuff
@@ -235,12 +274,15 @@ def depart_latex_math(self, node):
 
 # Register everything and add to Translator
 py_role.options = {'class': None,'fmt': directives.unchanged}
+
 register_canonical_role('latex-math', latex_math_role)
 register_canonical_role('py', py_role)
 
 directives.register_directive('latex-math', latex_math_directive)
 directives.register_directive('py', py_directive)
 directives.register_directive('pyno', pyno_directive)
+directives.register_directive('code-block', code_block_directive)
+
 
 LaTeXTranslator.visit_latex_math = visit_latex_math
 LaTeXTranslator.depart_latex_math = depart_latex_math
@@ -250,6 +292,8 @@ LaTeXTranslator.visit_pyno = visit_pyno
 LaTeXTranslator.depart_pyno = depart_pyno
 LaTeXTranslator.visit_py_echo_area = visit_py_echo_area
 LaTeXTranslator.depart_py_echo_area = depart_py_echo_area
+LaTeXTranslator.visit_code_block = visit_code_block
+LaTeXTranslator.depart_code_block = depart_code_block
 
 
 # Publish the commandline
