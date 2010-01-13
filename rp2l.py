@@ -15,14 +15,37 @@ from docutils.writers.latex2e import LaTeXTranslator
 from docutils.parsers.rst import directives
 from var_to_latex import VariableToLatex
 from pytexutils import lhs
-import sys
+import sys,traceback
 
 def parse_py_line(line):
-    if line.find('='):
+    if line.find('=') != -1:
         l,r = line.split('=')
         return l,r
     else:
         return '',line
+
+
+def py2latex(content,fmt='%0.4f'):
+    for n,line in enumerate(content):
+        curlhs,currhs = parse_py_line(line)
+        try:
+            exec line in sys.modules['__main__'].py_directive_namespace
+        except:
+            for i,l in enumerate(content):
+                print '%s: %s'%(i+1,l)
+            traceback.print_exc(file=sys.stdout)
+            sys.exit(0)
+        curvar = eval(currhs,sys.modules['__main__'].py_directive_namespace)
+        curlatex = VariableToLatex(curvar,curlhs,fmt=fmt)[0][0]
+        if n == 0:
+            latex=curlatex
+        else:
+            latex+='\\\\'
+            latex+=curlatex
+        if n==len(content)-1 and len(content)>1:
+                latex+='\\\\'
+    return latex
+
 
 # executed py directives
 
@@ -50,17 +73,23 @@ class py_echo_area(nodes.Element):
 # Register role:
 def py_role(role, rawtext, text, lineno, inliner,
                     options={}, content=[]):
+    if not hasattr(sys.modules['__main__'],'py_directive_namespace'):
+        setattr(sys.modules['__main__'],'py_directive_namespace', {})
     i = rawtext.find('`')
-    code = rawtext[i+1:-1]
+    code = rawtext[i+1:-1]+'\n'
+    if options.has_key('fmt'):
+        fmt = options['fmt']
+    else:
+        fmt = '%0.3f'
     try:
-        code = code
+        latex = py2latex([code],fmt=fmt)
     except SyntaxError, msg:
         msg = inliner.reporter.error(msg, line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
-    node = py(rawtext, code)
+    node = py(rawtext, latex)
     return [node], []
-register_canonical_role('py', py_role)
+
 
 
 class py_directive(rst.Directive):
@@ -88,7 +117,7 @@ class py_directive(rst.Directive):
             echo = self.options['echo']
         if self.options.has_key('fmt'):
             fmt = self.options['fmt']
-
+        echo_code_latex = ''
         if echo == 'verbatim':
             echo_code_latex = ""
             for n,l in enumerate(self.content):
@@ -97,20 +126,7 @@ class py_directive(rst.Directive):
                     echo_code_latex += '\n'
         elif echo == 'none':
             echo_code_latex = ''
-
-        for n,line in enumerate(self.content):
-            curlhs,currhs = parse_py_line(line)
-            exec line in sys.modules['__main__'].py_directive_namespace
-            curvar = eval(currhs,sys.modules['__main__'].py_directive_namespace)
-            curlatex = VariableToLatex(curvar,curlhs,fmt=fmt)[0][0]
-            if n == 0:
-                latex=curlatex
-            else:
-                latex+='\\\\'
-                latex+=curlatex
-            if n==len(self.content)-1 and len(self.content)>1:
-                latex+='\\\\'
-
+        latex = py2latex(self.content,fmt=fmt)
         py_node = py(self.block_text,latex)                
         if echo != 'none':
             echo_code = py_echo_area(self.block_text,echo_code_latex)
@@ -121,14 +137,37 @@ class py_directive(rst.Directive):
 class pyno_directive(rst.Directive):
     has_content = True
 
+
+    option_spec = {'echo': directives.unchanged,
+                   'fmt': directives.unchanged,
+                   }
+
     def run(self):
         if not hasattr(sys.modules['__main__'],'py_directive_namespace'):
             setattr(sys.modules['__main__'],'py_directive_namespace', {})
+        echo = self.state.document.settings.py_echo
+        fmt = self.state.document.settings.py_fmt
+        if not hasattr(sys.modules['__main__'],'py_directive_namespace'):
+            setattr(sys.modules['__main__'],'py_directive_namespace', {})
+        if self.options.has_key('echo'):
+            echo = self.options['echo']
+        if self.options.has_key('fmt'):
+            fmt = self.options['fmt']
+        echo_code_latex = ''
+        if echo == 'verbatim':
+            echo_code_latex = ""
+            for n,l in enumerate(self.content):
+                echo_code_latex += l
+                if n != len(self.content)-1:
+                    echo_code_latex += '\n'
+        elif echo == 'none':
+            echo_code_latex = ''
         latex = ''
+        echo_code = py_echo_area(self.block_text,echo_code_latex)
         for n,line in enumerate(self.content):
             exec line in sys.modules['__main__'].py_directive_namespace
         py_node = pyno(self.block_text,latex)
-        return [py_node]
+        return [echo_code,py_node]
 
 
 def visit_py(self,node):
@@ -173,7 +212,6 @@ def latex_math_role(role, rawtext, text, lineno, inliner,
     latex = rawtext[i+1:-1]
     node = latex_math(rawtext, latex)
     return [node], []
-register_canonical_role('latex-math', latex_math_role)
 
 class latex_math_directive(rst.Directive):
     has_content = True
@@ -196,6 +234,9 @@ def depart_latex_math(self, node):
     
 
 # Register everything and add to Translator
+py_role.options = {'class': None,'fmt': directives.unchanged}
+register_canonical_role('latex-math', latex_math_role)
+register_canonical_role('py', py_role)
 
 directives.register_directive('latex-math', latex_math_directive)
 directives.register_directive('py', py_directive)

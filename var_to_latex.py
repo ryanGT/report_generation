@@ -2,7 +2,7 @@ import numpy
 from numpy import ndarray, array, poly1d
 from scipy import isscalar, shape, imag, real, angle
 from scipy import isscalar, shape, imag, real, array, angle, matrix
-import sympy
+import sympy,decimal
 try:
     import quantities,re
     quantities_imported = True
@@ -267,7 +267,7 @@ def is_quantity(myvar):
         return False
 
 def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
-                    fmt='%0.9f', eps=1.0e-12, replacelist=None, \
+                    fmt='%0.4f', eps=1.0e-12, replacelist=None, \
                     debug=0, **kwargs):
     """Convert variable myvar to LaTeX by checking whether
     or not it is a scalar.
@@ -296,6 +296,9 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
             outlist = [strout]
         else:
             outlist = [mylhs +' = '+strout]
+    elif type(myvar) == type(decimal.Decimal()):
+        outlist = [mylhs+' = '+str(myvar)]
+        env = 'equation'
     elif type(myvar) == dict:
         outlist = [mylhs +' = '+str(myvar)]
         env = 'equation'
