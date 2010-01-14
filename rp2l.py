@@ -40,7 +40,14 @@ def py2latex(content,fmt='%0.4f'):
             traceback.print_exc(file=sys.stdout)
             sys.exit(0)
         curvar = eval(currhs,sys.modules['__main__'].py_directive_namespace)
-        curlatex = VariableToLatex(curvar,curlhs,fmt=fmt)[0][0]
+        try:
+            curlatex = VariableToLatex(curvar,curlhs,fmt=fmt)[0][0]
+        except:
+            for i,l in enumerate(content):
+                print '%s: %s'%(i+1,l)
+            traceback.print_exc(file=sys.stdout)
+            sys.exit(0)
+            
         if n == 0:
             latex=curlatex
         else:
