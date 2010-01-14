@@ -329,7 +329,10 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         #outlist = [mylhs+'='+unicode(qstr,"utf-8")]
         #outlist = [out]
         env = 'equation'
-        rhs = mag+r'\;'+unicode(dims,"utf-8")
+        dims = unicode(dims,"utf-8")
+        if dims.find('dimensionless') > -1:
+            dims = ''
+        rhs = mag+r'\;'+dims
     else:
         #print('calling ArrayToLaTex on variable with lhs '+mylhs+'.  str(myvar)='+str(myvar))
         rhs, env = ArrayToLaTex(myvar, mylhs, ams=ams,fmt=fmt)
