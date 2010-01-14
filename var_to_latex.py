@@ -177,7 +177,7 @@ def ArrayToLaTex(arrayin, mylhs, fmt='%0.4g', ams=True, \
     if IsOneD(arrayin):
         return OneDArrayToLatex(arrayin, mylhs, fmt=fmt)
     else:
-        curstr = mylhs +' = '
+        curstr = ''#mylhs +' = '
         if ams:
             if matstr == 'smallmatrix':
                 curstr += ' \\left[ '
@@ -194,6 +194,7 @@ def ArrayToLaTex(arrayin, mylhs, fmt='%0.4g', ams=True, \
                 outlist.append(' \\right] ')
         else:
             outlist.append('\\end{array} \\right]')
+        outlist = '\n'.join(outlist)
         return outlist, 'equation'
 
 
@@ -293,22 +294,29 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         else:
             env = 'equation'
         if strout.find('=') > -1:
-            outlist = [strout]
+            rhs = strout.split('=')[1]
+            #outlist = [strout]
         else:
+            rhs = strout
             outlist = [mylhs +' = '+strout]
     elif type(myvar) == type(decimal.Decimal()):
-        outlist = [mylhs+' = '+str(myvar)]
+        rhs = str(myvar)
+        #outlist = [mylhs+' = '+str(myvar)]
         env = 'equation'
     elif type(myvar) == dict:
-        outlist = [mylhs +' = '+str(myvar)]
+        rhs = str(myvar)
+        #outlist = [mylhs +' = '+str(myvar)]
         env = 'equation'
     elif isinstance(myvar, poly1d):
-        outlist, env = ArrayToLaTex(myvar.coeffs, mylhs, ams=ams)
+        rhs, env = ArrayToLaTex(myvar.coeffs, mylhs, ams=ams)
+        
     elif isscalar(myvar):
-        outlist = [mylhs +' = '+NumToLatex(myvar,fmt=fmt)]
+        rhs = NumToLatex(myvar,fmt=fmt)
+        #outlist = [mylhs +' = '+NumToLatex(myvar,fmt=fmt)]
         env = 'equation'#need a number to latex convert that handles nice formatting
     elif is_sympy(myvar):
-        outlist = [mylhs +' = '+sympy.latex(myvar, profile=sympy_profile)]
+        rhs = sympy.latex(myvar, profile=sympy_profile)
+        #outlist = [mylhs +' = '+sympy.latex(myvar, profile=sympy_profile)]
         env = 'equation'
     elif is_quantity(myvar):
         #qstr = str(myvar).replace(' ','\\;')
@@ -317,13 +325,18 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         else:
             dims = myvar.dimensionality.string
         mag = fmt%myvar.magnitude
-        out = mylhs+' = '+mag+r'\;'+unicode(dims,"utf-8")
+        #out = mylhs+' = '+mag+r'\;'+unicode(dims,"utf-8")
         #outlist = [mylhs+'='+unicode(qstr,"utf-8")]
-        outlist = [out]
+        #outlist = [out]
         env = 'equation'
+        rhs = mag+r'\;'+unicode(dims,"utf-8")
     else:
         #print('calling ArrayToLaTex on variable with lhs '+mylhs+'.  str(myvar)='+str(myvar))
-        outlist, env = ArrayToLaTex(myvar, mylhs, ams=ams,fmt=fmt)
+        rhs, env = ArrayToLaTex(myvar, mylhs, ams=ams,fmt=fmt)
+    if mylhs != '':
+        outlist = [mylhs+' = '+rhs]
+    else:
+        outlist = [rhs]
     if replacelist is not None:
         outlist = replacelist.Replace(outlist)
     return outlist, env

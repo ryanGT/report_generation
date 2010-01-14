@@ -197,8 +197,17 @@ class pyno_directive(rst.Directive):
             echo_code_latex = ''
         latex = ''
         echo_code = py_echo_area(self.block_text,echo_code_latex)
+        code = ''
         for n,line in enumerate(self.content):
-            exec line in sys.modules['__main__'].py_directive_namespace
+            code+='%s\n'%line
+        try:
+            exec code in sys.modules['__main__'].py_directive_namespace
+        except:
+            for i,l in enumerate(code.split('\n')):
+                print '%s: %s'%(i+1,l)
+            traceback.print_exc(file=sys.stdout)
+            sys.exit(0)
+            
         py_node = pyno(self.block_text,latex)
         return [echo_code,py_node]
 
