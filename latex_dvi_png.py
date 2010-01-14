@@ -116,12 +116,12 @@ def find_png_name(dvi_name='temp_out.dvi', cache_dir=None):
         return pngpath
     
 def latex_to_dvi_png(latex_in, filename='temp_out.tex', cache_dir=None, \
-                     log=True, bg_str=None):
+                     log=True, bg_str=None, res=750):
     if log:
         log_eq(latex_in, cache_dir=None)
     filepath = latex_to_file_in_cache(latex_in, filename=filename, \
                                       cache_dir=cache_dir)
-    dvi_name = run_latex_dvi_png(filepath, bg_str=bg_str)
+    dvi_name = run_latex_dvi_png(filepath, bg_str=bg_str, res=res)
     return find_png_name(dvi_name, cache_dir=cache_dir)
 
 def eq_to_dvi_png(eq_in, *args, **kwargs):
