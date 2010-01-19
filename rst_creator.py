@@ -207,12 +207,40 @@ def add_up_link_to_rst(pathin, uplink_path=None):
     if uplink_path is None:
         uplink_path = '../index.html'
     myfile = txt_mixin.txt_file_with_list(pathin)
-    inds = myfile.findall('index.html')
+    inds = myfile.findallre('`up <.*index.html>`_')
+    #print('inds = '+str(inds))
+    if len(inds) > 1:
+        print('more than one up match: '+pathin)
+        for ind in inds:
+            print('  ' + myfile.list[ind])
     if not inds:
         myfile.list.append('')
         myfile.list.append('`up <%s>`_' % uplink_path)
         myfile.save(pathin)
 
+
+def _add_if_needed(pathin, pat, list_to_insert, ind=0):
+    myfile = txt_mixin.txt_file_with_list(pathin)
+    inds = myfile.findallre(pat)
+    #print('inds = '+str(inds))
+    if len(inds) > 1:
+        print('more than one up match: '+pathin)
+        for ind in inds:
+            print('  ' + myfile.list[ind])
+    if not inds:
+        if (ind is None) or (ind == -1):
+            myfile.list.extend(list_to_insert)
+        else:
+            myfile.list[ind:ind] = list_to_insert
+        myfile.save(pathin)
+    
+
+def add_header(pathin):
+    pat = r'\.\. include:: .*header\.rst'
+    mylist = ['.. include:: /home/ryan/git/report_generation/header.rst' , \
+              '']
+    _add_if_needed(pathin, pat, mylist)
+    
                                          
 def rst2html_fullpath(pathin, add_up_link=False, \
                       uplink_path=None):

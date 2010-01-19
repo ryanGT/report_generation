@@ -139,7 +139,7 @@ def pictsindir(folder, exts=['*.jpg']):
       filt3 = filter(dont_skip_me, filt2)
       picts += curfiles2
       picts += filt3
-   print('picts = %s' % picts)
+   #print('picts = %s' % picts)
    return picts
 
 
@@ -151,7 +151,7 @@ def haspicts(pathin, exts=['*.jpg']):
    #would also need just '*.JPG' to get the top level ones
    hasany = False
    for root, dirs, files in os.walk(pathin):
-      print('root='+str(root))
+      #print('root='+str(root))
       curpicts = pictsindir(root, exts)
       if curpicts:
          hasany = True
@@ -220,8 +220,8 @@ class Thumbnail:
       """Resize using Image.thumbnail, which modifies the image in
       place and preserves the aspect ratio.  Image.ANTIALIAS is used."""
       self.img = Image.open(self.pathin)
-      print('In thumbnail_maker.py, Thumbnail.Resize,')
-      print('self.size='+str(self.size))
+      #print('In thumbnail_maker.py, Thumbnail.Resize,')
+      #print('self.size='+str(self.size))
       self.img.thumbnail(self.size, Image.ANTIALIAS)
       return self.img
 
@@ -243,7 +243,7 @@ class Thumbnail:
             thumb_mtime = os.path.getmtime(self.thumbpath)
             main_mtime = os.path.getmtime(self.pathin)
             if main_mtime > thumb_mtime:
-               print('updating thumbnail: %s' % self.pathin)
+               #print('updating thumbnail: %s' % self.pathin)
                skip = False
             else:
                skip = True
@@ -646,7 +646,6 @@ class ThumbNailPage(Image_Finder):
          dest = '../index.html'
       if br:
          self.body.append('<br>')
-      print('dest = '+dest)
       self.body.append('<a href="%s">up</a>' % dest)
 
 
@@ -826,6 +825,27 @@ class DirectoryPage3(DirectoryPage, css_line_delete_mixin):
       f.write(outstr)
       f.close()
       
+
+class DirectoryPage_index_rst_only(DirectoryPage_no_images):
+   """This class only runs rst2html on the index_*.rst files when they
+   are found; it does not run rst2html on the other files.  This is
+   necessary if the other files need Bill's rstpython2latex or
+   something else special (rst2s5)."""
+   def find_top_level_index_rst(self, runrst=True, add_up_link=True):
+      top_level_rsts = self.Find_Top_Level_Files(['*.rst'])
+      ind = None
+      if len(top_level_rsts) > 0:
+         for i, curpath in enumerate(top_level_rsts):
+            folder, name = os.path.split(curpath)
+            if name.find('index_') > -1:
+               dst = os.path.join(folder, 'index.rst')
+               shutil.copyfile(curpath, dst)
+               rst2html_fullpath(dst, add_up_link=add_up_link)
+               ind = i
+      if ind:
+         return top_level_rsts[ind]
+      else:
+         return None
    
 class MainPageMaker:
    def __init__(self, folder, title=None, body=None, \

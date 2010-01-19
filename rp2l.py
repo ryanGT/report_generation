@@ -40,7 +40,14 @@ def py2latex(content,fmt='%0.4f'):
             traceback.print_exc(file=sys.stdout)
             sys.exit(0)
         curvar = eval(currhs,sys.modules['__main__'].py_directive_namespace)
-        curlatex = VariableToLatex(curvar,curlhs,fmt=fmt)[0][0]
+        try:
+            curlatex = VariableToLatex(curvar,curlhs,fmt=fmt)[0][0]
+        except:
+            for i,l in enumerate(content):
+                print '%s: %s'%(i+1,l)
+            traceback.print_exc(file=sys.stdout)
+            sys.exit(0)
+            
         if n == 0:
             latex=curlatex
         else:
@@ -96,10 +103,22 @@ def py_role(role, rawtext, text, lineno, inliner,
 
 class code_block(nodes.Element):
     tagname = '#code_block'
-    def __init__(self, rawsource, latex,language):
+    def __init__(self, rawsource, latex,language,formatter):
         nodes.Element.__init__(self, rawsource)
         self.latex = latex
         self.language = language
+        self.formatter = formatter
+        
+def code_block_role(role,rawtext,text,lineno,inliner,options={},content=[]):
+    latex = text#'\\lstinline{%s}'%text
+    if options.has_key('language'):
+        language = options['language']
+    else:
+        language = 'python'
+    formatter = 'listings'
+    node = code_block(rawtext,latex,language,formatter)
+    return [node],[]
+    
 
 class code_block_directive(rst.Directive):
     has_content = True
@@ -107,19 +126,28 @@ class code_block_directive(rst.Directive):
     required_arguments = 1
     options_spec = {
         'numbering':directives.unchanged,
+        'formater':directives.unchanged,
         }
 
 
     def run(self):
+        formatter = self.state.document.settings.code_block_formatter
+        if self.options.has_key('formatter'):
+            echo = self.options['formatter']
+        else:
+            formatter = 'listings'
         language = self.arguments[0]
-        lexer = get_lexer_by_name(language)
         code = ''
         for line in self.content:
             code+='%s\n'%line
-        latex_tokens = pygments.lex(code, lexer)
-        formatter = LatexFormatter()
-        latex = pygments.format(latex_tokens,formatter)
-        node = code_block(self.block_text,latex,language)
+        if formatter == 'pygments':
+            lexer = get_lexer_by_name(language)
+            latex_tokens = pygments.lex(code, lexer)
+            formatter = LatexFormatter()
+            latex = pygments.format(latex_tokens,formatter)
+        elif formatter == 'listings':
+            latex = code
+        node = code_block(self.block_text,latex,language,formatter)
         return [node]
 
         
@@ -197,8 +225,17 @@ class pyno_directive(rst.Directive):
             echo_code_latex = ''
         latex = ''
         echo_code = py_echo_area(self.block_text,echo_code_latex)
+        code = ''
         for n,line in enumerate(self.content):
-            exec line in sys.modules['__main__'].py_directive_namespace
+            code+='%s\n'%line
+        try:
+            exec code in sys.modules['__main__'].py_directive_namespace
+        except:
+            for i,l in enumerate(code.split('\n')):
+                print '%s: %s'%(i+1,l)
+            traceback.print_exc(file=sys.stdout)
+            sys.exit(0)
+            
         py_node = pyno(self.block_text,latex)
         return [echo_code,py_node]
 
@@ -228,7 +265,21 @@ def depart_pyno(self,node):
     pass
 
 def visit_code_block(self,node):
-    self.body.extend(['\n\n%s\n'%node.latex])
+    inline = isinstance(node.parent, nodes.TextElement)
+    attrs = node.attributes
+    if inline:
+        self.body.append('\\lstinline{%s}' % node.latex)
+    else:
+        if node.formatter == 'pygments':
+            lexer = get_lexer_by_name(language)
+            latex_tokens = pygments.lex(code, lexer)
+            formatter = LatexFormatter()
+            latex = [pygments.format(latex_tokens,formatter)]
+        elif node.formatter == 'listings':
+            latex = ['\\begin{lstlisting}[language=%s]\n'%node.language,
+                          node.latex,
+                          '\n\\end{lstlisting}\n']
+        self.body.extend(latex)
 
 def depart_code_block(self,node):
     pass
@@ -274,9 +325,11 @@ def depart_latex_math(self, node):
 
 # Register everything and add to Translator
 py_role.options = {'class': None,'fmt': directives.unchanged}
+py_role.options = {'class': None,'language': directives.unchanged}
 
 register_canonical_role('latex-math', latex_math_role)
 register_canonical_role('py', py_role)
+register_canonical_role('code-block', code_block_role)
 
 directives.register_directive('latex-math', latex_math_directive)
 directives.register_directive('py', py_directive)
@@ -305,7 +358,10 @@ Latex2eWriter.settings_spec = (Latex2eWriter.settings_spec[0],\
                                  {'default':'none'}),\
                                 ('Specify format of floats. Default is "%0.4f".',\
                                  ['--py-fmt'],\
-                                 {'default':'%0.4f'})))
+                                 {'default':'%0.4f'}),
+                                ('Specify formatter for code blocks. Default is python.',\
+                                 ['--code-block-formatter'],\
+                                 {'default':'python'})))
 
 description = ('Generates LaTeX documents from standalone reStructuredText '
                'sources.  ' + default_description)

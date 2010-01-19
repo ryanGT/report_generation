@@ -166,6 +166,79 @@ class env_popper(object):
         return envkey, code
 
 
+class simple_popper(env_popper):
+    def __init__(self, listin, start_re):
+        self.list = txt_mixin.txt_list(listin)
+        self.start_re = start_re
+        self.p_start = re.compile(self.start_re)
+        self.ind = 0
+
+    def PopNext(self, clear=False):
+        if self.FindNextEnv() is not None:#sets self.matchline
+            self.FindEndofEnv()#sets self.endline
+            outlist = self.PopEnv(clear=clear)
+            if clear:
+                self.ind = self.matchline#r      return outlist
+            return outlist
+        else:
+            return None
+
+    def PopEnv(self, startline=None, endline=None, clear=False):
+        if startline is None:
+            startline = self.matchline
+        if endline is None:
+            if self.endline is not None:
+                endline = self.endline+1
+        outlist = self.list[startline:endline]
+        if clear:
+            myvect[startline:endline] = []
+        return outlist
+
+    def FindNextEnv(self):
+        """Find the next line matching self.p_start (the re.compile-ed
+        version of self.pat), starting at line self.ind."""
+        next_ind = self.list.findnextre(self.p_start, ind=self.ind)
+        if next_ind is not None:
+            self.matchline = next_ind
+            self.ind = self.matchline+1
+            return self.matchline
+        else:
+            return None
+
+    def FindEndofEnv(self, matchline=None):
+        if matchline is None:
+            matchline = self.matchline
+        n = -1
+        match = False
+        numleft = 0
+        numright = 0
+        while (not match) and (n < len(self.list)):
+            n += 1
+            curline = rwkstr(self.list[matchline+n])
+            numleft += len(curline.findall('{'))
+            numright += len(curline.findall('}'))
+            if numright >= numleft:
+                match = True
+        if match:
+            self.endline = matchline+n
+            return self.endline
+        else:
+            return None
+
+
+    def Execute(self):
+        keepgoing = True
+        n = 0
+        self.nested_list = []
+        while keepgoing and (n < len(self.list)):
+            chunk = self.PopNext()
+            if chunk:
+                self.nested_list.append(chunk)
+            else:
+                keepgoing = False
+            n += 1
+        return self.nested_list
+
 
 class pyp_figure(object):
     def __init__(self, string_in, objlist, level=1):
@@ -671,3 +744,26 @@ class python_report_popper(env_popper):
             n += 1
         return self.objlist
 
+
+class reg_exp_popper(simple_popper, python_report_popper):
+    """This class exists to make it easier to create journal entries
+    or other reports directly from commented python files.  The python
+    file must include things like #pyno, #pybody and #pyfig to tell
+    the popper how to chop up the file.  The chopping up will not
+    include curly braces so that the end of one environment will be
+    marked by the start of the next."""
+    def __init__(self, listin, start_re, end_re=None):
+        simple_popper.__init__(self, listin, start_re)
+        self.end_re = end_re        
+        self.p_end = re.compile(self.end_re)
+        
+    def FindEndofEnv(self, matchline=None):
+        #this needs to handle pyfig env's better now that pat just
+        #looks for # without a !
+        if matchline is None:
+            matchline = self.matchline
+        end_ind = self.list.findnextre(self.p_end, ind=self.ind)
+##         if end_ind:
+##             end_ind = end_ind-1
+        self.endline = end_ind
+        return end_ind
