@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os, glob, time, shutil
 from optparse import OptionParser
+from pytexutils import cleanLatexOutputFiles
 
 import pyp_converter, rwkos
 
@@ -23,6 +24,9 @@ parser.add_option("-o", "--output", dest="output", \
                   help="Desired output path or filename.", \
                   default='', type="string")
 
+parser.add_option("-c", "--clean", dest="clean_output", \
+                  help="Remove all the files created from this script and LaTeX.", \
+                  default=1, type="int")
                   
 (options, args) = parser.parse_args()
 
@@ -48,3 +52,8 @@ my_doc.save()
 
 if options.runlatex:
     my_doc.run_latex()
+
+pathto,pyp_file = os.path.split(pyp_path)
+basename,ext = os.path.splitext(pyp_file)
+if options.runlatex and options.clean_output:
+    cleanLatexOutputFiles(pathto,basename,exts=['log','aux','out'])

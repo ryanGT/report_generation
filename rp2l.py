@@ -20,6 +20,7 @@ import sys,traceback
 import pygments
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import LatexFormatter
+from docutils.parsers.rst.directives.images import Figure
 
 def parse_py_line(line):
     if line.find('=') != -1:
@@ -58,7 +59,7 @@ def py2latex(content,fmt='%0.4f'):
     return latex
 
 
-# executed py directives
+# Executed py directives
 
 # Define py node:
 class py(nodes.Element):
@@ -240,6 +241,22 @@ class pyno_directive(rst.Directive):
         return [echo_code,py_node]
 
 
+class jqfigure(nodes.General, nodes.Element):pass
+
+class jqfigure_directive(Figure):
+
+    option_spec = Figure.option_spec.copy()
+    option_spec['placement'] = directives.unchanged
+
+    def run(self):
+        placement = self.state.document.settings.jqfigure_placement
+        if self.options.has_key('placement'):
+            placement = self.options['placement']
+        (figure_node,) = Figure.run(self)
+        jqfigure_node = jqfigure('',figure_node)
+        jqfigure_node['placement'] = placement
+        return [jqfigure_node]
+
 def visit_py(self,node):
     inline = isinstance(node.parent, nodes.TextElement)
     attrs = node.attributes
@@ -253,7 +270,7 @@ def depart_py(self,node):
     pass
 
 def visit_py_echo_area(self,node):
-    self.body.extend(['\n\n\\begin{lstlisting}\n',node.latex,'\n\\end{lstlisting}\n'])
+    self.body.extend(['\n\n\\begin{lstlisting}[language={python}]\n',node.latex,'\n\\end{lstlisting}\n'])
 
 def depart_py_echo_area(self,node):
     pass
@@ -285,6 +302,22 @@ def depart_code_block(self,node):
     pass
 
 
+def visit_jqfigure(self,node):
+    pass
+
+def depart_jqfigure(self,node):
+    attrs = node.attributes
+    placement_str = attrs['placement']
+    if placement_str == '':
+        placement = placement_str
+    else:
+        placement = '[%s]'%placement_str
+    for i in range(len(self.out)):
+        j = i+1
+        cur = self.out[-j]
+        if cur.find('begin') > -1 and cur.find('figure') > 1:
+            self.out[-j] = cur+placement
+            break
 
 # Latex Math Stuff
 
@@ -335,6 +368,7 @@ directives.register_directive('latex-math', latex_math_directive)
 directives.register_directive('py', py_directive)
 directives.register_directive('pyno', pyno_directive)
 directives.register_directive('code-block', code_block_directive)
+directives.register_directive('jqfigure', jqfigure_directive)
 
 
 LaTeXTranslator.visit_latex_math = visit_latex_math
@@ -347,6 +381,8 @@ LaTeXTranslator.visit_py_echo_area = visit_py_echo_area
 LaTeXTranslator.depart_py_echo_area = depart_py_echo_area
 LaTeXTranslator.visit_code_block = visit_code_block
 LaTeXTranslator.depart_code_block = depart_code_block
+LaTeXTranslator.visit_jqfigure = visit_jqfigure
+LaTeXTranslator.depart_jqfigure = depart_jqfigure
 
 
 # Publish the commandline
@@ -361,7 +397,11 @@ Latex2eWriter.settings_spec = (Latex2eWriter.settings_spec[0],\
                                  {'default':'%0.4f'}),
                                 ('Specify formatter for code blocks. Default is python.',\
                                  ['--code-block-formatter'],\
-                                 {'default':'python'})))
+                                 {'default':'python'}),
+                                ('Specify formatter for code blocks. Default is [tbp!].',\
+                                 ['--jqfigure-placement'],\
+                                 {'default':'tbp!'})
+                                ))
 
 description = ('Generates LaTeX documents from standalone reStructuredText '
                'sources.  ' + default_description)

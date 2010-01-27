@@ -351,6 +351,83 @@ class Block:
         self.latexlist = latexlist
         return self.latexlist
 
+class InputFile(Block):
+    def __init__(self,linesin):
+        '''
+        This block allows the inclusion of other files to be
+        preprocessed by pytex.
+        '''
+        lines = [line.strip() for line in linesin]
+        self.lines = []
+        for line in lines:
+            if line != '':
+                self.lines.append(line)
+        self.filepath = self.lines[0]
+        if os.path.splitext(self.filepath)[1]=='':
+            self.filepath = self.filepath+'.tex'
+    
+    def Execute(self,namespace={},**kwargs):
+        #define the replacelist to make a pretty output
+        import replacelist,texpy
+        replacelist = replacelist.ReplaceList()
+        replacelist.ReadFRFile()
+        
+        #define the file/filepath
+        inpath = self.filepath
+        fno, ext = os.path.splitext(inpath)
+        self.outpath = fno+'_out.tex'
+        
+        #parse the file and execute the code
+        self.tp = texpy.TexPyFile(inpath)
+        if not kwargs.has_key('star'):
+            kwargs['star']==True
+        if not kwargs.has_key('echo'):
+            kwargs['echo']=0
+        self.tp.Execute(star=kwargs['star'],replacelist=replacelist,echo=kwargs['echo'])
+        print self.tp.HasPython(), 'asdfasfas'
+        #save the file
+        self.tp.SaveLatex(self.outpath,ed=False)
+
+        #append any new potential replacements
+        findlist=[]
+        findlist.extend(self.tp.FindLHSs())
+        replacelist.AppendFRFile(findlist)
+
+    def ToLatex(self,echo,**kwargs):
+        latexlist = ['\\input{%s}'%os.path.splitext(self.outpath)[0]]
+        return latexlist
+
+class StdoutBlock(Block):
+    '''
+    A block to capture the stdout of a block of code and
+    echo it back in the document.
+    '''
+    def Execute(self,namespace={},**kwargs):
+        '''
+        This block of code is executed different than any other block
+        of code in that there is no real latex processing done. This
+        block of code is executed in namespace and the stdout is captured
+        in a StringIO object and returned to be echoed in the document.
+        '''
+        import StringIO
+        codeOut = StringIO.StringIO()
+        codeErr = StringIO.StringIO()
+        python = '\n'.join(self.lines)
+        sys.stdout = codeOut
+        sys.stderr = codeErr
+        exec python in namespace
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        err = codeErr.getvalue()     #need to throw an exception if err is
+        result = codeOut.getvalue()  #anything but "". 
+        codeOut.close()
+        codeErr.close()
+        lines = result.split('\n')
+        self.lines = lines
+        return lines
+
+    def ToLatex(self,**kwargs):
+        return self.lines
 
 
 class FigureBlock(Block):

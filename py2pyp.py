@@ -49,6 +49,7 @@ class python_file(txt_mixin.txt_file_with_list):
 
     def To_PYP(self, full_echo=0, usetex=False, **kwargs):
         pyp_list = []
+        self.lhslist = []
         print('usetex=%s' % usetex)
         if full_echo > 0:
             self.clean_comments()
@@ -65,9 +66,14 @@ class python_file(txt_mixin.txt_file_with_list):
                 pyp_list.append('')
         for env in self.envs:
             cur_list = env.To_PYP(usetex=usetex, **kwargs)
+            if hasattr(env,'lhslist'):
+                extendList = [i for i in env.lhslist if i not in self.lhslist]
+                self.lhslist.extend(extendList)
             pyp_list.extend(cur_list)
         self.pyp_list = pyp_list
 
+    def FindLHSs(self):
+        return self.lhslist
 
     def save(self):
         self.writefile(self.pyp_path, listin=self.pyp_list)

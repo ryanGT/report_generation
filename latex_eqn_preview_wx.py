@@ -134,6 +134,19 @@ class MyFrame(wx.Frame):
         #pil = Load_PIL_and_Resize(imageFile, [int(0.95*w), int(0.7*h)])
         #wxbmp = PIL_to_wx(pil)
 
+        png1 = wx.Image(imageFile, wx.BITMAP_TYPE_ANY)
+        pw, ph = png1.GetSize()
+        aspect_ratio = float(pw)/float(ph)
+        new_w = 400
+        new_h = 100
+        png1.Rescale(int(new_w), int(new_h))
+        wxbmp = png1.ConvertToBitmap()
+        self.bmp = wx.StaticBitmap(self, -1, wxbmp, \
+                                   (10 + wxbmp.GetWidth(), 5), \
+                                   (wxbmp.GetWidth(), \
+                                    wxbmp.GetHeight()))
+        self.text = wx.TextCtrl(self, -1, "", size=(500, 30),
+
         if not headless:
             png1 = wx.Image(imageFile, wx.BITMAP_TYPE_ANY)
             pw, ph = png1.GetSize()
@@ -208,9 +221,15 @@ class MyFrame(wx.Frame):
         mysize = self.GetSize()
         w, h = mysize
         pw, ph = png.GetSize()
-        aspect_ratio = float(pw)/float(ph)
+        if float(ph) == 0.0:
+            aspect_ratio = float(pw)
+        else:
+            aspect_ratio = float(pw)/float(ph)
         new_w = w*0.95
-        new_h = new_w/aspect_ratio
+        if aspect_ratio == 0:
+            new_h = new_w
+        else:
+            new_h = new_w/aspect_ratio
         if new_h > 100:
             new_h = 100
             new_w = aspect_ratio*new_h

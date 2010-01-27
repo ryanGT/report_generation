@@ -1,7 +1,8 @@
 #!/usr/bin/python
 import os, glob, time, shutil
 from optparse import OptionParser
-
+from replacelist import ReplaceList,AppendFRPatterns
+from pytex import PythonFile
 import py2pyp
 
 import pyp_to_rst, rwkos
@@ -25,7 +26,14 @@ parser.add_option("-e", "--echo", dest="echo", \
                   help="Echo the python code. 0 = not at all, 1 = first, 2 = after", \
                   default=0, type="int")
 
-                  
+parser.add_option("-n", "--nohead", dest="nohead", \
+                  help="Save with no header.", \
+                  default=0, type="int")
+
+parser.add_option("-c", "--clean", dest="clean_output", \
+                  help="Remove all the files created from this script and LaTeX.", \
+                  default=1, type="int")
+
 (options, args) = parser.parse_args()
 
 print('options='+str(options))
@@ -43,6 +51,7 @@ py_path = rwkos.FindFullPath(args[0])
 
 raw = 0
 pne, ext = os.path.splitext(py_path)
+pathto,basename = os.path.split(pne)
 if pne[-4:] == '_raw':
     raw = 1
     clean_path = pne[0:-4]+'.py'
@@ -53,12 +62,13 @@ if not pathout:
     else:
         pathout = None
 
-
-
+frpatterns_path = os.path.join(os.path.splitext(py_path)[0],'frpatterns.txt')
+replacelist = ReplaceList()#frpath=frpatterns_path)
+replacelist.ReadFRFile()
 
 mypy = py2pyp.python_file(py_path, outputpath=pathout)
 mypy.Execute()
-mypy.To_PYP(usetex=True, echo=echo, full_echo=echo)
+mypy.To_PYP(usetex=True, echo=echo, full_echo=echo,replacelist=replacelist)
 
 if raw:
     mypy.clean_comments()
@@ -73,17 +83,21 @@ if append_show:
     
 pyp_path = mypy.save()
 
-cmd = 'document_gen.py %s' % pyp_path
-print(cmd)
+if options.nohead:
+    cmd = 'document_gen.py -n 1 -c %s %s' % (options.clean_output,pyp_path)
+else:
+    cmd = 'document_gen.py -c %s %s' % (options.clean_output,pyp_path)
+
 os.system(cmd)
 
+#append any new potential replacements
+#findlist=[]
+#findlist.extend(tp.FindLHSs())
+#replacelist.AppendFRFile(findlist)
+if options.clean_output:
+    os.unlink(pyp_path)    
 
-## mypyp = pyp_to_rst.pyp_doc_to_rst_paper(pyp_path)
-## mypyp.convert()
-## rst_path = mypyp.save()
-
-## pne, ext = os.path.splitext(rst_path)
-## html_path = pne+'.tex'
-## cmd = 'rst2html %s %s' % (rst_path, html_path)
-## print(cmd)
-## os.system(cmd)
+#append any new potential replacements
+findlist=[]
+findlist.extend(mypy.FindLHSs())
+AppendFRPatterns(findlist)

@@ -1,4 +1,5 @@
-import re, copy, os
+import re, copy, os, sys, StringIO,traceback
+
 import txt_mixin
 #reload(txt_mixin)
 from rwkmisc import rwkstr
@@ -479,7 +480,6 @@ class pyp_env_popper(env_popper):
             n += 1
         return self.objlist
 
-
 class python_report_env(object):
     def __init__(self, listin):
         self.list = txt_mixin.txt_list(listin)
@@ -488,8 +488,13 @@ class python_report_env(object):
 
     def Execute(self, namespace, **kwargs):
         self.namespace = namespace
-        exec self.code in namespace
-
+        try:
+            exec self.code in namespace
+        except:
+            for i,l in enumerate(self.code.split('\n')):
+                print '%s: %s'%(i+1,l)
+            traceback.print_exc(file=sys.stdout)
+            sys.exit(0)
 
     def To_PYP(self, **kwargs):
         raise NotImplementedError
@@ -595,6 +600,7 @@ ignore_list = ['!','-','=']
 class py_body(python_report_env):
     def To_PYP(self, usetex=False, echo=False, **kwargs):
         pyp_out = []
+        self.lhslist = []
         if self.list[0].find('#pybody') == 0:
             self.list.pop(0)
         for line in self.list:
@@ -609,10 +615,10 @@ class py_body(python_report_env):
                 lhs = find_lhs(line)
                 if echo:
                     pyp_out.append('code{'+line+'}')
-                if lhs:
+                if lhs and lhs.find('print')==-1: 
                     myvar = eval(lhs, self.namespace)
                     if usetex:
-                        outlines, env = VL.VariableToLatex(myvar, lhs)
+                        outlines, env = VL.VariableToLatex(myvar, lhs,**kwargs)
                         if len(outlines) == 1:
                             eqnlines = ['eqn{'+env+'|'+outlines[0]+'}']
                         else:
@@ -620,6 +626,7 @@ class py_body(python_report_env):
                         pyp_out.extend(eqnlines)
                     else:
                         pyp_out.append('%s = %s' % (lhs, myvar))
+                    self.lhslist.append(lhs)
         return pyp_out
 
 
