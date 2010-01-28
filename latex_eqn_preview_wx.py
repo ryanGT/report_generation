@@ -145,7 +145,14 @@ class MyFrame(wx.Frame):
                                    (10 + wxbmp.GetWidth(), 5), \
                                    (wxbmp.GetWidth(), \
                                     wxbmp.GetHeight()))
-        self.text = wx.TextCtrl(self, -1, "", size=(500, 30),
+        self.text = wx.TextCtrl(self, -1, "", size=(450, 30),
+                                style = wx.TE_MULTILINE
+                                |wx.WANTS_CHARS
+                                #|wx.TE_CHARWRAP 
+                                |wx.TE_WORDWRAP
+                                #| wx.TE_RICH
+                                #| wx.TE_RICH2
+                                )
 
         if not headless:
             png1 = wx.Image(imageFile, wx.BITMAP_TYPE_ANY)
