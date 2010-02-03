@@ -842,7 +842,7 @@ class DirectoryPage_index_rst_only(DirectoryPage_no_images):
                shutil.copyfile(curpath, dst)
                rst2html_fullpath(dst, add_up_link=add_up_link)
                ind = i
-      if ind:
+      if ind is not None:
          return top_level_rsts[ind]
       else:
          return None
