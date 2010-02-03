@@ -781,7 +781,7 @@ class DirectoryPage_courses(DirectoryPage):
             else:
                if runrst and (name != 'index.rst'):
                   rst2html_fullpath(curpath, add_up_link=add_up_link)
-      if ind:
+      if ind is not None:
          return top_level_rsts[ind]
       else:
          return None
