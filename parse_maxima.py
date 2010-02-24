@@ -1,5 +1,6 @@
 import txt_mixin, texfilemixin
-
+from pytexutils import *
+from maxima_regexps import *
 
 def ParseMaximaOutput(linesin, frlist=[], removelist=['$$'], lhs='', combined=1, wrap=0, maxwidth=130, rhs=''):
     myeq = MaximaEquation(linesin)
@@ -12,6 +13,16 @@ def ParseMaximaOutput(linesin, frlist=[], removelist=['$$'], lhs='', combined=1,
         return myeq.wrappedlines
     else:
         return [myeq.string]
+
+
+def combinedlines(linesin):
+    if isinstance(linesin,str):
+        return linesin
+    else:
+        outstr=''
+        for line in linesin:
+            outstr += ' '+line
+        return outstr
 
 
 class MaximaEquation(txt_mixin.txt_list, texfilemixin.TexFileMixin):
