@@ -129,9 +129,35 @@ def eq_to_dvi_png(eq_in, *args, **kwargs):
     return latex_to_dvi_png(latex_line, *args, **kwargs)
 
 def read_from_file_dvi_png(filename='temp.tex', cache_dir=None, \
-                           log=True):
+                           log=True, **kwargs):
     eq_in = read_eqn_from_file(filename, cache_dir=cache_dir)
     fno, ext = os.path.splitext(filename)
     outname = fno+'_out.tex'
     return eq_to_dvi_png(eq_in, filename=outname, \
-                         cache_dir=cache_dir, log=log)
+                         cache_dir=cache_dir, log=log, **kwargs)
+
+
+if __name__ == '__main__':
+    from optparse import OptionParser
+
+    usage = 'usage: %prog [options] inputfile.txt'
+    parser = OptionParser(usage)
+
+
+    parser.add_option("-r", "--res", dest="res", \
+                  help="Resolution in dpi for dvi to png.", \
+                  default=600, type="int")
+
+    (options, args) = parser.parse_args()
+    pathin = args[0]
+    folder, filename = os.path.split(pathin)
+    if not folder:
+        folder ='.'
+    temppng = read_from_file_dvi_png(filename, cache_dir=folder, \
+                                     res=options.res)
+    pne, ext = os.path.splitext(pathin)
+    pngpath = pne + '.png'
+
+    import shutil
+    shutil.move(temppng, pngpath)
+    
