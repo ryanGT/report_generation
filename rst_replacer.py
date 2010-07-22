@@ -10,4 +10,14 @@ class rst_replacer(txt_mixin.txt_file_with_list):
         pat2 = 'begin{figure}\[%s\]' % oldstr
         repstr = 'begin{figure}[%s]' % newstr
         self.replace_before(pat1, pat2, repstr)
+
+
+    def figure_placement_replacer_no_old(self, filename, \
+                                         newstr='htbp!', \
+                                         max_N=10):
+        pat1 = 'includegraphics.*{.*' + filename + '.*}'
+        oldline = '\\begin{figure}'
+        newline = '\\begin{figure}[%s]' % newstr
+        self.replace_line_before(pat1, oldline, newline)
+        #self.replace_before(pat1, pat2, repstr)
         
