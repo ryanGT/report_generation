@@ -233,7 +233,7 @@ class Thumbnail:
       self.img.save(self.thumbpath, quality=self.quality)
 
 
-   def ResizeAndSave(self, force=False, verbosity=1, ifnewer=True):
+   def ResizeAndSave(self, force=False, verbosity=0, ifnewer=True):
       skip = False
       if self.Exists():
          if force:
@@ -499,7 +499,7 @@ class ImageResizerDir(Image_Finder):
       self.kwargs = {'size':self.size,'thumbdir':self.resizefolder}
 
 
-   def ResizeTopDir(self, verbosity=1):
+   def ResizeTopDir(self, verbosity=0):
       self.Find_Images()
       self.images = [self.resizeclass(item, **self.kwargs) \
                      for item in self.imagepaths]
@@ -509,7 +509,7 @@ class ImageResizerDir(Image_Finder):
          item.ResizeAndSave()
 
 
-   def ResizeAll(self, verbosity=1):
+   def ResizeAll(self, verbosity=0):
       self.Find_All_Images()
       self.allimages = [self.resizeclass(item, **self.kwargs) \
                         for item in self.allimagepaths]
@@ -531,7 +531,7 @@ class ImageResizerDir(Image_Finder):
       return self.newjpegs
 
 
-   def ResizeNew(self, verbosity=1):
+   def ResizeNew(self, verbosity=0):
       if not hasattr(self, 'newjpegs'):
          self.FilterExisting()
       self.newimages = [self.resizeclass(item, **self.kwargs) for item in self.newjpegs]
@@ -615,6 +615,8 @@ class ThumbNailPage(Image_Finder):
 
 
    def GenerateHTMLs(self, **kwargs):
+       print('in GenerateHTMLs')
+       print('self.folder='+self.folder)
        if not hasattr(self, 'images'):
           self.FindImages()
        for image in self.images:
@@ -724,6 +726,7 @@ class DirectoryPage(ThumbNailPage):
       pdf) in the top level dir and create links under the heading
       sectiontitle."""
       namelist = self.Find_Other_Top_Level_Files(extlist)
+      namelist.sort()
       if namelist:
          self.body.append('<h2>%s</h2>' % sectiontitle)
          self.body.append('<ul>')
@@ -731,6 +734,82 @@ class DirectoryPage(ThumbNailPage):
             self.body.append('<li> <a href=%s>%s</a></li>'%(item,item))
          self.body.append('</ul>')
       return self.body
+
+
+   def Find_Lecture_Slide_in_Subfolder(self, folder, slidenum=1,
+                                       extlist=['.png','.jpg']):
+      pat = 'ME*_%0.4i' % slidenum
+      fullfolderpath = os.path.join(self.folder, folder)
+      relpat = os.path.join(fullfolderpath, pat)
+      for ext in extlist:
+         ext = ext.lower()
+         if ext[0] != '.':
+            ext = '.' + ext
+         curpat = relpat + ext
+         curlist = glob.glob(curpat)
+         if curlist:
+            return curlist[0]
+         else:
+            curpat = relpat + ext.upper()
+            curlist = glob.glob(curpat)
+            if curlist:
+               return curlist[0]
+
+         
+   def Add_Other_Links_in_Subfolder(self, folder, extlist=None):
+      """Find other files (not images - probably python, html, and
+      pdf) in folder and create links to them."""
+      other_files = self.Find_Files_in_One_Subfolder(folder, \
+                                                     extlist=extlist, \
+                                                     skiplist=['index.html'])
+      other_files.sort()
+      if other_files:
+         self.body.append('<ul>')
+         for curpath in other_files:
+            folderpath, name = os.path.split(curpath)
+            relpath = os.path.join(folder, name)
+            self.body.append('<li> <a href=%s>%s</a></li>'%(relpath,name))
+         self.body.append('</ul>')
+      return self.body
+
+
+   def _add_slide_in_subfolder_thumb(self, folder, name):
+      fno, ext = os.path.splitext(name)
+      ws = '        '
+      
+      def myout(line):
+         self.body.append(ws+line)
+         
+      myout('<TD>')
+      htmlpath = folder + '/html/' + fno + '.html'
+      line1 = '<a href="%s">' % htmlpath
+      myout(line1)
+      thumbpath = folder + '/thumbnails/' + fno + '.jpg'#even if name
+                                                        #is a png, the
+                                                        #thumbnail
+                                                        #should be a
+                                                        #jpg
+      line2 = '<img src="%s"></a>' % thumbpath
+      myout(line2)
+      myout('</TD>')
+      
+
+   def Add_Links_to_First_Two_Slides_in_Subfolder(self, folder):
+      firstpath = self.Find_Lecture_Slide_in_Subfolder(folder, slidenum=1)
+      if firstpath:
+         out = self.body.append
+         dirpath, name = os.path.split(firstpath)
+         out('<TABLE>')
+         out('<TR align=center>')
+         out('')
+         self._add_slide_in_subfolder_thumb(folder, name)
+         secondpath = self.Find_Lecture_Slide_in_Subfolder(folder, slidenum=2)
+         if secondpath:
+            dirpath, name = os.path.split(secondpath)
+            out('')
+            self._add_slide_in_subfolder_thumb(folder, name)
+         out('</TABLE>')
+   
       
    def find_top_level_index_rst(self):
       top_level_rsts = self.Find_Top_Level_Files(['*.rst'])
@@ -756,6 +835,7 @@ class DirectoryPage(ThumbNailPage):
       self.Add_Other_Links(['.m'], "Matlab Files:")      
       self.Add_Other_Links(['.pdf'], "PDF Files:")
       self.Add_Other_Links(['.html'], "HTML Files:")
+      self.Add_Other_Links(['.avi','.mpeg'], "Mutli-Media Files:")
       if bl:
          self.Add_bottom_link(dest=bl_dest)
       self.ToFile()
@@ -824,7 +904,23 @@ class DirectoryPage3(DirectoryPage, css_line_delete_mixin):
       f = open(outpath, 'w')
       f.write(outstr)
       f.close()
-      
+
+
+class top_level_lecture_page(DirectoryPage_courses):
+   def AddSubFolderLinks(self):
+      if not hasattr(self, 'filtfolders'):
+         self.FindSubFolders()
+      out = self.body.append
+      if self.filtfolders:
+         out('<h2>Folders:</h2>')
+         out('<ul>')
+         for item in self.filtfolders:
+            self.body.append('<li> <a href=%s/index.html><h3>%s</h3></a></li>'%(item,item))
+            self.Add_Links_to_First_Two_Slides_in_Subfolder(item)
+            self.Add_Other_Links_in_Subfolder(item)
+         out('</ul>')
+      return self.body
+   
 
 class DirectoryPage_index_rst_only(DirectoryPage_no_images):
    """This class only runs rst2html on the index_*.rst files when they
@@ -881,7 +977,7 @@ class MainPageMaker2:
    def __init__(self, folder, title=None, body=None, \
                 htmldir='html', thumbdir='thumbnails', \
                 screensizedir='screensize', \
-                extlist=['.html','.py','.pdf','.m'], \
+                extlist=['.html','.py','.pdf','.m','.mpeg','.avi'], \
                 imageextlist=['.png', '.jpg', '.jpeg'], \
                 screensizesize=(875,700), \
                 thumbsize=(400, 300), \
@@ -893,6 +989,7 @@ class MainPageMaker2:
       self.screensizedir = screensizedir
       self.extlist = extlist
       self.imageextlist = imageextlist
+      self.allcontentlist = extlist + imageextlist + ['.rst']
       self.HTMLclass = HTMLclass
       self.DirectoryPageclass = DirectoryPageclass
       self.Screen_Size_Maker = ImageResizer900by600(folder, \
@@ -911,19 +1008,32 @@ class MainPageMaker2:
                                              extlist=imageextlist,
                                              skiplist=skipnames)
 
+
+   def hascontent(self, folder, extlist=None):
+      """Check to see if folder or any of its children contain any
+      content for the webpage."""
+      if extlist is None:
+         extlist = self.allcontentlist
+      mybool = haspicts(folder, extlist)
+      return mybool
+         
+
    def Go(self, toplevel_html_list=[], top_level_link=None):
       self.Screen_Size_Maker.ResizeAll()
       self.Thumbnail_Maker.ResizeAll()
-      self.mainpage = self.DirectoryPageclass(self.mainfolder, \
-                                              extlist=self.imageextlist, \
-                                              contentlist=self.extlist, \
-                                              HTMLclass=self.HTMLclass, \
-                                              title = self.title, \
-                                              screensizedir=self.screensizedir, \
-                                              skiplist=skipnames)
+      #print('mainfolder='+self.mainfolder)
+      self.mainpage = top_level_lecture_page(self.mainfolder, \
+                                             extlist=self.extlist, \
+                                             contentlist=self.extlist, \
+                                             HTMLclass=self.HTMLclass, \
+                                             title = self.title, \
+                                             screensizedir=self.screensizedir, \
+                                             skiplist=skipnames)
+      self.mainpage.Create_Most()
       for root, dirs, files in os.walk(self.mainfolder):
-         if (not inskipfolders(root)) and (haspicts(root, \
-                                                    self.extlist+['.rst'])):
+         if (not root==self.mainfolder) and \
+                (not inskipfolders(root)) and \
+                (self.hascontent(root)):
             print('root='+root)
             #print('mainfolder='+self.mainfolder)
             toplevel = (root == self.mainfolder)

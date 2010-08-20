@@ -111,6 +111,19 @@ class File_Finder(object):
        return self.top_level_files
 
 
+    def Find_Files_in_One_Subfolder(self, relpath, \
+                                    extlist=None, skiplist=[]):
+        if extlist is None:
+            extlist = self.extlist
+        folderpath = os.path.join(self.folder, relpath)
+        files = search_for_files_in_folder_v2(folderpath, \
+                                              extlist, \
+                                              skiplist=skiplist)
+        return files
+       
+   
+
+
 multi_media_exts = ['jpg','jpeg','avi','mov','mpeg','mpg', \
                     'gif','xcf','png','nef','cr2']#cr2 is the Cannon raw ext
 
