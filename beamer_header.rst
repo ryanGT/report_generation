@@ -15,10 +15,6 @@
 .. role:: inline
 
 
-.. sectnum::
-  :depth: 3
-
-
 .. raw::  latex
 
     \newcommand*{\docutilsroleref}{\ref}

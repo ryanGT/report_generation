@@ -836,6 +836,7 @@ class DirectoryPage(ThumbNailPage):
       self.Add_Other_Links(['.pdf'], "PDF Files:")
       self.Add_Other_Links(['.html'], "HTML Files:")
       self.Add_Other_Links(['.avi','.mpeg'], "Mutli-Media Files:")
+      self.Add_Other_Links(['.txt','.csv'], "Data Files:")
       if bl:
          self.Add_bottom_link(dest=bl_dest)
       self.ToFile()
@@ -977,7 +978,8 @@ class MainPageMaker2:
    def __init__(self, folder, title=None, body=None, \
                 htmldir='html', thumbdir='thumbnails', \
                 screensizedir='screensize', \
-                extlist=['.html','.py','.pdf','.m','.mpeg','.avi'], \
+                extlist=['.html','.py','.pdf','.m',\
+                         '.mpeg','.avi','.txt','.csv'], \
                 imageextlist=['.png', '.jpg', '.jpeg'], \
                 screensizesize=(875,700), \
                 thumbsize=(400, 300), \
