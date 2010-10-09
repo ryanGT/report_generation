@@ -317,6 +317,31 @@ def HTML_one_thumb(filename, htmldir='html', thumbdir='thumbnails'):
     return outstr
 
 
+def HTML_one_thumb_long_path(filepath, \
+                             htmldir='html', \
+                             thumbdir='thumbnails'):
+    temp = """
+       <TD>
+       <a href="%HTMLPATH%">
+       <img src="%THUMBPATH%"><br>
+       %FILENAME%
+       </a>
+       </TD>"""
+    folder, filename = os.path.split(filepath)
+    fno, ext = os.path.splitext(filename)
+    htmlrel = os.path.join(htmldir, fno+'.html')
+    htmlpath = os.path.join(folder, htmlrel)
+    thumbrel = os.path.join(thumbdir, fno+'.jpg')
+    thumbpath = os.path.join(folder, thumbrel)
+##     if not os.path.exists(thumbpath):
+##        thumbpath = os.path.join(thumbdir, fno+'.JPG')
+    outstr = temp.replace('%HTMLPATH%', htmlpath)
+    outstr = outstr.replace('%THUMBPATH%', thumbpath)
+    outstr = outstr.replace('%FILENAME%', filename)
+    return outstr
+
+
+
 class HTMLImage:
    def __init__(self, pathin, prevfile=None, nextfile=None, \
                 screensizedir='screensize'):
@@ -664,6 +689,52 @@ class ThumbNailPage(Image_Finder):
       f = open(outpath, 'w')
       f.write(outstr)
       f.close()
+
+
+
+class ThumbNailPage_from_imagelist(ThumbNailPage):
+   """Create a thumbnail page from a list of relative image paths."""
+   def __init__(self, imagelist, folder=None, title=None, body=None, \
+                htmldir='html', thumbdir='thumbnails', \
+                extlist=jpgextlist, contentlist=[], \
+                HTMLclass=HTMLImage, skipdirs=myskipdirs, \
+                screensizedir='screensize', \
+                bodyin=[], **kwargs):
+      self.images = imagelist
+      self.folder = folder
+      self.header = thumbheader.replace('%TITLE%', str(title))
+      self.extlist = extlist
+      self.body = copy.copy(bodyin)
+      self.contentlist = copy.copy(contentlist)
+      #print('bodyin = '+str(bodyin))
+      self.htmldir = htmldir
+      self.thumbdir = thumbdir
+      if title:
+         self.body.insert(0,'<h1>'+title+'</h1>')
+      if body:
+         self.body.append(body+'<br>')
+      self.tail = tail
+      self.HTMLclass = HTMLclass
+      self.screensizedir = screensizedir
+
+
+   def AddThumbNailTable(self, **kwargs):
+      if not hasattr(self, 'images'):
+         self.FindImages()
+      if not self.images:
+         return None
+      self.table=['<TABLE>']
+      out = self.table.append
+      extd = self.table.extend
+      n = 2#number of images per row
+      for i, image in enumerate(self.images):
+         if mod(i, n) == 0:
+            out('<TR align=center>')
+         elif mod(i,n)-1 == n:
+            out('</TR>')
+         out(HTML_one_thumb_long_path(image, **kwargs))
+      out('</TABLE>')
+      self.body.extend(self.table)
 
 
 class DirectoryPage(ThumbNailPage):
