@@ -1,5 +1,5 @@
 import os, copy, sys, time, pdb, \
-       subprocess, tokenize, cStringIO, re
+       subprocess, tokenize, cStringIO, re, glob
 
 import numpy
 from scipy import isscalar, shape, imag, real, array
@@ -20,6 +20,13 @@ def cleanLatexOutputFiles(pathto,basename,exts=['log','aux','out']):
         curpath = os.path.join(pathto,curfile)
         if os.path.exists(curpath):
             os.unlink(curpath)
+
+def clean_dir(folder_path, exts=['*.log','*.aux','*.out']):
+    for ext in exts:
+        pat = os.path.join(folder_path, ext)
+        myfiles = glob.glob(pat)
+        for curpath in myfiles:
+            os.remove(curpath)
 
 def OptionsDictFromList(listin, optdict=None):
     loners = []
