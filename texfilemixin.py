@@ -68,7 +68,7 @@ class TexFileMixin(object):
         writefile(self.nhpath, self.body)
         
 
-    def AddHeader(self, verbosity=1):
+    def AddHeader(self, headerpath=None, verbosity=1):
         """Search for a file named header.tex somewhere in sys.path
         and insert its contents at the begining of the Latex file."""
         # pathname=os.path.dirname(sys.argv[0])
@@ -82,14 +82,19 @@ class TexFileMixin(object):
         fn="header.tex"
         headless=1      
         fp=""
-        mypathlist = walkuplist(self.path)
-        fullpathlist = mypathlist+os.sys.path
-        for path in fullpathlist:
-            curfp=os.path.join(path,fn)
-            if os.path.exists(curfp):
-                headless=0
-                fp=curfp
-                break
+        if headerpath is not None:
+            if os.path.exists(headerpath):
+                headless = 0
+                fp = headerpath
+        if headless:
+            mypathlist = walkuplist(self.path)
+            fullpathlist = mypathlist+os.sys.path
+            for path in fullpathlist:
+                curfp=os.path.join(path,fn)
+                if os.path.exists(curfp):
+                    headless=0
+                    fp=curfp
+                    break
         if headless:
             self.myprint("Could not find header.tex in any directory in os.sys.path")
             return None
