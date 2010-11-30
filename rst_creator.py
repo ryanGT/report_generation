@@ -27,7 +27,7 @@ class image_decorator(rst_decorator):
 
 
 class figure_decorator(image_decorator):
-    def __call__(self, pathin, caption=None, width=None, \
+    def __call__(self, pathin, caption=None, width='4.0in', \
                  target=None, height=None):
         if width is None:
             width = self.width
