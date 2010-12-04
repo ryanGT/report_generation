@@ -83,7 +83,7 @@ class centered_figure(rst_decorator):
 class rst_section_level_1(rst_decorator):
     def __call__(self, stringin):
         dec_line = '='*(len(stringin)+1)
-        listout = ['', dec_line, stringin, dec_line, '']
+        listout = [dec_line, stringin, dec_line, '']
         return listout
 
 
@@ -151,8 +151,9 @@ class rst_file(txt_mixin.txt_file_with_list):
         self.centered_figure_dec = centered_figure()
         self.image_dec = image_decorator()
         self.saved = False
-        pne, ext = os.path.splitext(self.pathin)
-        self.htmlpath = pne+'.html'
+        if pathin is not None:
+            pne, ext = os.path.splitext(self.pathin)
+            self.htmlpath = pne+'.html'
         #self.centered_image_dec = centered_image()
 
 
@@ -180,17 +181,19 @@ class rst_file(txt_mixin.txt_file_with_list):
     def add_figure(self, figpath, caption=None, width=None, \
                    height=None, **kwargs):
         fig_list = self.figure_dec(figpath, caption=caption, \
-                                         width=width, height=height, \
-                                         **kwargs)
+                                   width=width, height=height, \
+                                   **kwargs)
         self.list.extend(fig_list)
 
 
-    def add_body(self, body):
+    def add_body(self, body, padlines=True):
         if type(body) == str:
             body = [body]
-        self.list.append('')
+        if padlines:
+            self.list.append('')
         self.list.extend(body)
-        self.list.append('')
+        if padlines:
+            self.list.append('')
 
 
     def add_section(self, section_title):
@@ -202,6 +205,29 @@ class rst_file(txt_mixin.txt_file_with_list):
         subsection_list = self.subsection_dec(subsection_title)
         self.list.extend(subsection_list)
 
+
+class beamer_file(rst_file):
+    def add_header(self):
+        mylist = ['.. include:: /home/ryan/git/report_generation/beamer_header.rst' , \
+                  '']
+        self.list.extend(mylist)
+        
+
+    def add_slide_title(self, slide_title):
+        rst_file.add_section(self, slide_title)
+        
+
+    def add_figure(self, figpath, caption=None, width='4.0in', \
+                   height=None, ws=None, **kwargs):
+        fig_list = self.figure_dec(figpath, caption=caption, \
+                                   width=width, height=height, \
+                                   **kwargs)
+        if ws is not None:
+            out_list = [ws+item for item in fig_list]
+        else:
+            out_list = fig_list
+        self.list.extend(out_list)
+        
 
 def add_up_link_to_rst(pathin, uplink_path=None):
     if uplink_path is None:
@@ -240,7 +266,14 @@ def add_header(pathin):
     mylist = ['.. include:: /home/ryan/git/report_generation/header.rst' , \
               '']
     _add_if_needed(pathin, pat, mylist)
-    
+
+
+def add_beamer_header(pathin):
+    pat = r'\.\. include:: .*beamer_header\.rst'
+    mylist = ['.. include:: /home/ryan/git/report_generation/beamer_header.rst' , \
+              '']
+    _add_if_needed(pathin, pat, mylist)
+
                                          
 def rst2html_fullpath(pathin, add_up_link=False, \
                       uplink_path=None):
