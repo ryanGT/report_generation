@@ -78,7 +78,8 @@ def Search_for_images_in_folder(pathin, extlist=['.jpg','.jpeg'], \
 
 class File_Finder(object):
     def __init__(self, folderpath, extlist=None, \
-                 skipdirs=['.comments'], skiplist=[]):
+                 skipdirs=['.comments'], skiplist=[], \
+                 skipextlist=None):
        self.folder = folderpath
        if extlist:
            self.extlist = clean_extlist(extlist)
@@ -86,11 +87,12 @@ class File_Finder(object):
            self.extlist = extlist
        self.skipdirs = skipdirs
        self.skiplist = skiplist
+       self.skipextlist = skipextlist
 
 
     def Find_All_Folders(self):
        self.all_folders = rwkos.FindAllSubFolders(self.folder, \
-                                                     skipdirs=self.skipdirs)
+                                                  skipdirs=self.skipdirs)
 
 
     def Find_All_Files(self):
@@ -98,10 +100,25 @@ class File_Finder(object):
           self.Find_All_Folders()
        self.all_files = []
        for folder in self.all_folders:
-           curfiles = search_for_files_in_folder_v2(folder, self.extlist)
+           curfiles = search_for_files_in_folder_v2(folder, self.extlist, \
+                                                    skiplist=self.skiplist)
            self.all_files.extend(curfiles)
        return self.all_files
 
+
+    def myext_filter(self, filepath):
+        rest, ext = os.path.splitext(filepath)
+        return bool(ext not in self.skipextlist)
+
+
+    def filter_exts(self):
+        if self.skipextlist is None:
+            filt_files = self.all_files
+        else:
+            filt_files = filter(self.myext_filter, self.all_files)
+        self.filt_files = filt_files
+        return self.filt_files
+    
 
     def Find_Top_Level_Files(self, extlist=None):
        if extlist is None:
@@ -123,7 +140,31 @@ class File_Finder(object):
        
    
 
+class course_website_archiver(File_Finder):
+    """This is a class for finding all the files needed to create a
+    read-only archive of a course website.  .xcf and other files along
+    with the exclude directories are filtered out (other than xcf, all
+    the other extensions are tex/rst related)."""
+    def __init__(self, folderpath, extlist=None, \
+                 skipdirs=['exclude'], skiplist=[], \
+                 skipextlist=['.xcf','.log','.aux','.out',\
+                              '.nav','.snm','.vrb','.toc']):
+        File_Finder.__init__(self, folderpath, extlist=extlist, \
+                             skipdirs=skipdirs, skiplist=skiplist,
+                             skipextlist=skipextlist)
+        
 
+## class course_website_archiver2(File_Finder):
+##     def __init__(self, folderpath, extlist=None, \
+##                  skipdirs=['exclude'], skiplist=[], \
+##                  skipextlist=['.xcf','.log','.aux','.out',\
+##                               '.nav','.snm','.vrb','.toc', \
+##                               '.avi']):
+##         File_Finder.__init__(self, folderpath, extlist=extlist, \
+##                              skipdirs=skipdirs, skiplist=skiplist,
+##                              skipextlist=skipextlist)
+        
+    
 multi_media_exts = ['jpg','jpeg','avi','mov','mpeg','mpg', \
                     'gif','xcf','png','nef','cr2']#cr2 is the Cannon raw ext
 

@@ -1,0 +1,36 @@
+\usepackage{fullpage}
+\usepackage{color}
+\definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
+\definecolor{darkgreen}{rgb}{0,0.4,0.1}
+\definecolor{mygray}{gray}{0.9}
+\usepackage{listings}
+\lstset{
+%%%%Fernando + Ryan
+  language=Python,
+  numbers=left,
+%%%%  basicstyle=\ttfamily,
+  basicstyle=\small\sffamily,
+%%%%  basicstyle=\rmfamily,
+%%%%  basicstyle=\small\ttfamily,
+%%$  commentstyle=\ttfamily\color{blue},
+  stringstyle=\ttfamily\color{orange},
+%stringstyle=\ttfamily\color{red},
+  showstringspaces=false,
+  breaklines=true,
+%%%%  postbreak = \space\dots
+  postbreak = {},%\space,
+%  %Prabhu
+  commentstyle=\itshape\color{darkgreen},
+%commentstyle=\color{green}\itshape,
+%%  commentstyle=\textbf,
+%%% stringstyle=\color{darkgreen},
+ showstringspaces=false,
+%%% keywordstyle=\color{blue}\bfseries,
+ keywordstyle=\bfseries\color{blue},
+ escapeinside={(*}{*)},
+%%% emph={unknownparams},
+ emphstyle=\bfseries\color{blue},
+ emph={figure, clf, plot},
+ backgroundcolor=\color{mygray}
+}
+\usepackage{amsmath}
