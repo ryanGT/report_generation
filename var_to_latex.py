@@ -162,7 +162,8 @@ def OneDArrayToLatex(arrayin, mylhs, fmt='%0.4g', maxelem=10, wrap=5):
 
 
 def ArrayToLaTex(arrayin, mylhs, fmt='%0.4g', ams=True, \
-                 matstr='bmatrix', eps=1e-12):#matstr='smallmatrix'
+                 matstr='bmatrix', eps=1e-12, \
+                 join_char=' '):#matstr='smallmatrix'
     ########
     # Need to handle large arrays
     # intelligently.
@@ -194,7 +195,7 @@ def ArrayToLaTex(arrayin, mylhs, fmt='%0.4g', ams=True, \
                 outlist.append(' \\right] ')
         else:
             outlist.append('\\end{array} \\right]')
-        outlist = '\n'.join(outlist)
+        outlist = join_char.join(outlist)
         return outlist, 'equation'
 
 
