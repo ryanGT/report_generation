@@ -37,8 +37,12 @@ class rst_file(txt_mixin.txt_file_with_list):
 
 
     def get_section_contents(self, title, dec='==='):
-        start_ind, end_ind = self.find_section_inds(title, dec=dec)
-        return self.list[start_ind:end_ind]
+        try:
+            start_ind, end_ind = self.find_section_inds(title, dec=dec)
+            return self.list[start_ind:end_ind]
+        except AssertionError:
+            return None
+        
     
                              
         
