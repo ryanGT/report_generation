@@ -157,6 +157,12 @@ class rst_file(txt_mixin.txt_file_with_list):
         #self.centered_image_dec = centered_image()
 
 
+    def add_header(self):
+        mylist = ['.. include:: /home/ryan/git/report_generation/header.rst' , \
+                  '']
+        self.list.extend(mylist)
+
+
     def save(self):
         self.writefile(self.pathin)
         self.saved = True
