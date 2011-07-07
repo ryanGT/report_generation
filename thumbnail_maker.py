@@ -890,7 +890,7 @@ class DirectoryPage(ThumbNailPage):
             ind = names.index('index.rst')
             return top_level_rsts[ind]
 
-   def Create_Most(self, bl=True, bl_dest=None):
+   def Create_Most(self, bl=True, bl_dest=None, extlist=None):
       index_rst = self.find_top_level_index_rst()
       if index_rst:
          rst2html_fullpath(index_rst)
@@ -941,7 +941,10 @@ class DirectoryPage_courses(DirectoryPage):
 link_dict = {'.py':'Python Files', \
              '.m':'MATLAB Files', \
              '.pdf':'PDF Files', \
-             '.html':'HTML Files'}
+             '.html':'HTML Files',\
+             '.txt':'TXT Data Files',\
+             '.zip':'ZIP Archives'}
+
             
 class DirectoryPage_no_images(DirectoryPage_courses):
    def Create_Most(self, bl=True, bl_dest=None, \
@@ -1102,7 +1105,7 @@ class MainPageMaker2:
                                              title = self.title, \
                                              screensizedir=self.screensizedir, \
                                              skiplist=skipnames)
-      self.mainpage.Create_Most()
+      self.mainpage.Create_Most(extlist=self.extlist)
       for root, dirs, files in os.walk(self.mainfolder):
          if (not root==self.mainfolder) and \
                 (not inskipfolders(root)) and \
@@ -1132,11 +1135,12 @@ class MainPageMaker2:
             if toplevel:
                if top_level_link is not None:
                   curpage.Create_Most(bl=True, \
-                                      bl_dest=top_level_link)
+                                      bl_dest=top_level_link, \
+                                      extlist=self.extlist)
                else:
-                  curpage.Create_Most(bl=False)
+                  curpage.Create_Most(bl=False, extlist=self.extlist)
             else:
-               curpage.Create_Most(bl=True)
+               curpage.Create_Most(bl=True, extlist=self.extlist)
 
 
 class MainPageMaker_no_images:
@@ -1181,7 +1185,7 @@ class MainPageMaker_no_images:
                                            bodyin=bodyin, \
                                            title=title, \
                                            skiplist=skipnames)
-         curpage.Create_Most(bl=True)
+         curpage.Create_Most(bl=True, extlist=self.extlist)
 
       
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ mysectiondec = rst_creator.rst_section_dec()
 titledec = rst_creator.rst_title_dec()
 subsecdec = rst_creator.rst_subsection_dec()
 
+
 class report(txt_mixin.txt_file_with_list):
     def insert_title(self, title):
         self.list.insert(0,'')
@@ -17,9 +18,11 @@ class report(txt_mixin.txt_file_with_list):
         self.list.extend(mysectiondec(title))
 
 
-    def append_comment(self, comment):
+    def append_comment(self, comment, add_blank=True):
         if type(comment) == str:
             comment = [comment]
+        if add_blank:
+            comment.append('')
         self.list.extend(comment)
         
 
@@ -52,3 +55,6 @@ class report(txt_mixin.txt_file_with_list):
     def run_rst(self):
         cmd = 'rst2latex_rwk.py ' + self.pathout
         os.system(cmd)
+
+
+            
