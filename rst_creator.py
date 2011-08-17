@@ -29,7 +29,7 @@ class image_decorator(rst_decorator):
 class figure_decorator(image_decorator):
     def __call__(self, pathin, caption=None, width='4.0in', \
                  target=None, height=None):
-        if width is None:
+        if width is None and height is None:
             width = self.width
         line1 = '.. figure:: %s' % pathin
         listout = [line1]
@@ -179,6 +179,18 @@ class rst_file(txt_mixin.txt_file_with_list):
             base_cmd = 'rst2html.py %s %s'
         else:
             base_cmd = 'rst2html %s %s'
+        cmd = base_cmd % (self.pathin, self.htmlpath)
+        print(cmd)
+        os.system(cmd)
+
+
+    def to_pdf(self):
+        if not self.saved:
+            self.save()
+        if not rwkos.amiLinux():
+            base_cmd = 'rst2html.py %s %s'
+        else:
+            base_cmd = 'rst2latex_rwk.py %s %s'
         cmd = base_cmd % (self.pathin, self.htmlpath)
         print(cmd)
         os.system(cmd)

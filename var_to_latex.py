@@ -43,18 +43,30 @@ def AbsEpsilonCheck(val, eps=1e-12):
 
 
 def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False, \
-                    debug=0):
+                    debug=0, strip_sympy=True):
     #Note that this also becomes the default class for all elements of
     #arrays, so the possibility of those elements being sympy
     #expressions or something exists.
     if debug:
         print('In ComplexNumToStr, val='+str(val))
         print('type(val)=%s' % type(val))
+        test = is_sage(val)
+        print('is_sage test = '+str(test))
+
     if hasattr(val,'ToLatex'):
         return val.ToLatex(eps=eps, fmt=fmt)
-    elif is_sympy(val):
+    elif is_sympy(val) or is_sage(val):
         sympy_out = sympy.latex(val, profile=sympy_profile)
-        print('sympy_out='+sympy_out)
+        if strip_sympy:
+            bad_list = ['\\begin{equation*}', \
+                        '\\end{equation*}', \
+                        '\\begin{equation}', \
+                        '\\end{equation}', \
+                        '$']
+            for item in bad_list:
+                sympy_out = sympy_out.replace(item,'')
+        if debug:
+            print('sympy_out='+sympy_out)
         return sympy_out
     val = AbsEpsilonCheck(val)#this zeros out any vals that have very small absolute values
     test = bool(isinstance(val, complex))
@@ -86,15 +98,29 @@ def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False, \
     
 
 
-def RowToLatex(rowin, fmt='%0.4g', eps=1e-12):
+def RowToLatex(rowin, fmt='%0.4g', eps=1e-12, debug=0):
+    if debug:
+        print('rowin = ' + str(rowin))
+        print('type(rowin) = '+str(type(rowin)))
+        test = is_sage(rowin)
+        print('is_sage test = '+str(test))
     if hasattr(rowin,'ToLatex'):
+        if debug:
+            print('case 1')
         return rowin.ToLatex(eps=eps, fmt=fmt)
     elif isscalar(rowin):
+        if debug:
+            print('case 2')
         #return fmt % rowin
         return ComplexNumToStr(rowin, eps=eps, fmt=fmt)
-    elif is_sympy(rowin):
+    elif is_sympy(rowin) or is_sage(rowin):
+        if debug:
+            print('case 3')        
         return sympy.latex(rowin, profile=sympy_profile)
     elif type(rowin) == matrix:
+        if debug:
+            print('case 4')
+        
         strlist = []
         for i in range(rowin.size):
             item = rowin[0,i]
@@ -163,15 +189,17 @@ def OneDArrayToLatex(arrayin, mylhs, fmt='%0.4g', maxelem=10, wrap=5):
 
 def ArrayToLaTex(arrayin, mylhs, fmt='%0.4g', ams=True, \
                  matstr='bmatrix', eps=1e-12, \
-                 join_char=' '):#matstr='smallmatrix'
+                 join_char=' ', debug=0):#matstr='smallmatrix'
     ########
     # Need to handle large arrays
     # intelligently.
     ########
     #if mylhs == 'vec_r':
     #    Pdb().set_trace()
-    test = IsOneD(arrayin)
-    #print('IsOneD='+str(test))
+    if debug:
+        test = IsOneD(arrayin)
+        print('IsOneD='+str(test))
+
     if hasattr(arrayin, 'toarray'):
         arrayin = arrayin.toarray()
         print('called toarray on '+mylhs+' = '+str(mylhs))
@@ -259,6 +287,17 @@ def is_sympy(myvar):
     out = isinstance(myvar, sympy.core.basic.Basic)
     return out
 
+
+def is_sage(myvar):
+    q = str(type(myvar))
+    if q.find('sage') > -1:
+        return True
+    elif q.find('expression.Expression') > -1:
+        return True
+    else:
+        return False
+
+
 def is_quantity(myvar):
     if quantities_imported:
         if isinstance(myvar,quantities.Quantity):
@@ -270,7 +309,7 @@ def is_quantity(myvar):
 
 def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
                     fmt='%0.4f', eps=1.0e-12, replacelist=None, \
-                    debug=0, **kwargs):
+                    debug=1, **kwargs):
     """Convert variable myvar to LaTeX by checking whether
     or not it is a scalar.
 
@@ -315,7 +354,7 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         rhs = NumToLatex(myvar,fmt=fmt)
         #outlist = [mylhs +' = '+NumToLatex(myvar,fmt=fmt)]
         env = 'equation'#need a number to latex convert that handles nice formatting
-    elif is_sympy(myvar):
+    elif is_sympy(myvar) or is_sage(myvar):
         rhs = sympy.latex(myvar, profile=sympy_profile)
         #outlist = [mylhs +' = '+sympy.latex(myvar, profile=sympy_profile)]
         env = 'equation'
@@ -337,6 +376,8 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
     else:
         #print('calling ArrayToLaTex on variable with lhs '+mylhs+'.  str(myvar)='+str(myvar))
         rhs, env = ArrayToLaTex(myvar, mylhs, ams=ams,fmt=fmt)
+    if debug:
+        print('rhs = ' + str(rhs))
     if mylhs != '':
         outlist = [mylhs+' = '+rhs]
     else:
