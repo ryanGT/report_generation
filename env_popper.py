@@ -128,7 +128,10 @@ class env_popper(object):
         if startline is None:
             startline = self.matchline
         if endline is None:
-            endline = self.endline+1
+            if self.endline is None:
+                endline = self.endline
+            else:
+                endline = self.endline+1
         outlist = myvect[startline:endline]
 ##         if startline==endline:#make sure the {'s  and }'s are balanced
 ##             outstr = BalanceCurlies(outlist[0])
@@ -774,3 +777,125 @@ class reg_exp_popper(simple_popper, python_report_popper):
 ##             end_ind = end_ind-1
         self.endline = end_ind
         return end_ind
+
+
+def line_starts_with_non_white_space(linein):
+    if linein is None:
+        return False
+    if linein == '':
+        return False
+    first_char = linein[0]
+    ws_list = [' ','\t']#list of whitespace characters
+    if first_char in ws_list:
+        return False
+    else:
+        return True
+    
+
+class rst_popper(env_popper):
+    """This is my quick and dirty attemp to convert a sage rst
+    document to a file sage can load.  I will make some attempt to
+    generalize it so that it could work with other rst documents."""
+    def __init__(self, listin, preface='^'):#map_in=None
+        self.list = txt_mixin.txt_list(listin)
+        #self.map = map_in
+        #self.keys = self.map.keys()
+        #self.keystr = '|'.join(self.keys)
+        self.preface = preface
+        self.pat = self.preface + '\.\. (py|pyno)::' 
+        self.p = re.compile(self.pat)
+        self.lines = copy.copy(listin)
+        self.ind = 0
+        self.pat2 = "^[ \t]+:label:"
+        self.p2 = re.compile(self.pat2)
+        self.pat_code = '^([ \t]+)'#for finding white_space
+        self.pcode = re.compile(self.pat_code)
+
+
+
+    def FindEndofEnv(self, matchline=None, listname='lines'):
+        myvect = getattr(self, listname)
+        if matchline is None:
+            matchline = self.matchline
+        n = -1
+
+        N = len(myvect)
+        i = matchline + 1
+
+        while i < N-1:
+            curline = myvect[i]
+            if line_starts_with_non_white_space(curline):
+                #print('curline[0]=' + curline[0] + '.')
+                self.endline = i-1
+                return self.endline
+            else:
+                i += 1
+        #if the code makes it to here, the file ends on a .. py:: or
+        #.. pyno:: environment
+        self.endline = None
+        return self.endline
+
+
+    def _CleanChunk(self, chunk):
+        first_line = chunk.pop(0)
+        q = self.p.search(first_line)
+        assert q is not None, "First line of chunk did not match pattern."
+        line_two = chunk[0]#first line is already popped off
+        q2 = self.p2.search(line_two)
+        if q2 is not None:
+            line_two = chunk.pop(0)#remove the label line
+
+        while not chunk[0]:
+            chunk.pop(0)#remove empty lines at the beginning
+
+        while not chunk[-1]:
+            chunk.pop()#remove empty lines at the end
+
+        first_code_line = chunk[0]
+        qcode = self.pcode.search(first_code_line)
+        ws = qcode.group(0)
+        self.pat_code2 = '^' + ws
+        self.pcode2 = re.compile(self.pat_code2)
+
+        lines_out = []
+
+        for line in chunk:
+            clean_line = self.pcode2.sub('',line)
+            lines_out.append(clean_line)
+
+        lines_out.append('')#one empty line per chunk
+        return lines_out
+
+
+    def Execute(self):
+        keepgoing = True
+        n = 0
+        self.list_out = []
+        #Pdb().set_trace()
+        while keepgoing and (n < len(self.list)):
+            chunk = self.PopNext()
+            if chunk:
+                clean_chunk = self._CleanChunk(chunk)
+                self.list_out.extend(clean_chunk)
+            else:
+                keepgoing = False
+            n += 1
+        return self.list_out
+        
+
+    def save(self, outpath):
+        txt_mixin.dump(outpath, self.list_out)
+        
+
+if __name__ == '__main__':
+    filepath = '/home/ryan/siue/Research/DT_TMM/cantilever_beam/two_masses_analysis.rst'
+    import txt_mixin
+    myfile = txt_mixin.txt_file_with_list(filepath)
+    mylist = myfile.list
+    mypopper = rst_popper(mylist)
+    mypopper.Execute()
+    pne, ext = os.path.splitext(filepath)
+    outpath = pne + '.sage'
+    mypopper.save(outpath)
+    
+    
