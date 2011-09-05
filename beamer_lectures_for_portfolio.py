@@ -1,6 +1,8 @@
 import os
 import file_finder
 
+from IPython.Debugger import Pdb
+
 def remove_exts_from_list(listin):
     listout = []
     for filename in listin:
@@ -66,6 +68,27 @@ def run_one_course(lecture_path, pdf_out_path):
     merge_handouts(pdflist, pdf_out_path)
     return pdflist
 
+
+skip_list_482 =['proposal_assignment_lecture', \
+                'proposal_outline', \
+                'proposals_big_picture', \
+                'proposal_assignment_handout']
+
+def filt_482(pathin):
+    for item in skip_list_482:
+        if pathin.find(item) > -1:
+            return False
+    return True
+                
+
+def run_482_course(lecture_path, pdf_out_path):
+    filt_paths = find_beamer_lectures(lecture_path)
+    filt2 = filter(filt_482, filt_paths)
+    make_all_handouts(filt2)
+    pdflist = make_pdf_paths(filt2)
+    merge_handouts(pdflist, pdf_out_path)
+    return pdflist
+
     
 if __name__ is '__main__':
     run_592 = 0
@@ -79,8 +102,15 @@ if __name__ is '__main__':
         outpath_452 = '/home/ryan/siue/tenure/course_portfolios/452/beamer_lectures.pdf'
         pdf_paths_452 = run_one_course(mypath_452, outpath_452)
 
-    run_450 = 1
+    run_450 = 0
     if run_450:
         mypath_450 = '/home/ryan/siue/classes/450/2010/lectures'
         outpath_450 = '/home/ryan/siue/tenure/course_portfolios/450/beamer_lectures.pdf'
         pdf_paths_450 = run_one_course(mypath_450, outpath_450)
+
+
+    run_482 = 1
+    if run_482:
+        mypath_482 = '/home/ryan/siue/classes/482/2011/lectures'
+        outpath_482 = '/home/ryan/siue/tenure/course_portfolios/482/beamer_lectures.pdf'
+        pdf_paths_482 = run_482_course(mypath_482, outpath_482)
