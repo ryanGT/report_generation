@@ -72,7 +72,8 @@ def run_one_course(lecture_path, pdf_out_path):
 skip_list_482 =['proposal_assignment_lecture', \
                 'proposal_outline', \
                 'proposals_big_picture', \
-                'proposal_assignment_handout']
+                'proposal_assignment_handout', \
+                'abstract_presentation']
 
 def filt_482(pathin):
     for item in skip_list_482:
@@ -109,8 +110,15 @@ if __name__ is '__main__':
         pdf_paths_450 = run_one_course(mypath_450, outpath_450)
 
 
-    run_482 = 1
+    run_482 = 0
     if run_482:
         mypath_482 = '/home/ryan/siue/classes/482/2011/lectures'
         outpath_482 = '/home/ryan/siue/tenure/course_portfolios/482/beamer_lectures.pdf'
         pdf_paths_482 = run_482_course(mypath_482, outpath_482)
+
+
+    run_458 = 1
+    if run_458:
+        mypath_458 = '/home/ryan/siue/classes/mechatronics/2010/lectures'
+        outpath_458 = '/home/ryan/siue/tenure/course_portfolios/458/beamer_lectures.pdf'
+        pdf_paths_458 = run_one_course(mypath_458, outpath_458)

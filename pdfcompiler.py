@@ -58,18 +58,25 @@ class pdfcompiler(object):
             self.append_blank()
             
         
-    def append_contents(self, contents_path, addblank=None):
-        rst_cmd = 'rst2latex_rwk.py %s' % contents_path
+    def append_single_page_rst(self, rst_path, addblank=None):
+        rst_cmd = 'rst2latex_rwk.py %s' % rst_path
         self._exec_cmd(rst_cmd)
 
-        contents_pdf = pdf_path(contents_path)
+        rst_pdf_path = pdf_path(rst_path)
 
-        self.append_single_page_pdf(contents_pdf, addblank=addblank)
+        self.append_single_page_pdf(rst_pdf_path, addblank=addblank)
         
+
+    def append_contents(self, contents_path, addblank=None):
+        self.append_single_page_rst(contents_path, addblank)
+
 
     def append_sep_sheet(self, pathin, line2, line3='', \
                          space2='1.5in', \
                          addblank=None):
+        pne, ext = os.path.splitext(pathin)
+        if not ext:
+            pathin += '.tex'
         seperator_sheet(pathin, self.main_sep_line, \
                         line2=line2, line3=line3, \
                         space2=space2)
