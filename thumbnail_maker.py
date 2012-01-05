@@ -905,6 +905,7 @@ class DirectoryPage(ThumbNailPage):
       self.Add_Other_Links(['.py'], "Python Files:")
       self.Add_Other_Links(['.m'], "Matlab Files:")      
       self.Add_Other_Links(['.pdf'], "PDF Files:")
+      self.Add_Other_Links(['.tex'], "LaTeX Files:")
       self.Add_Other_Links(['.html'], "HTML Files:")
       self.Add_Other_Links(['.avi','.mpeg'], "Mutli-Media Files:")
       self.Add_Other_Links(['.txt','.csv'], "Data Files:")
@@ -943,7 +944,8 @@ link_dict = {'.py':'Python Files', \
              '.pdf':'PDF Files', \
              '.html':'HTML Files',\
              '.txt':'TXT Data Files',\
-             '.zip':'ZIP Archives'}
+             '.zip':'ZIP Archives', \
+             '.tex':'LaTeX Files'}
 
             
 class DirectoryPage_no_images(DirectoryPage_courses):
