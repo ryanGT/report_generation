@@ -16,7 +16,8 @@ skipfolders = ['html','thumbnails','blog_size','resized', \
                'exclude']
 
 skipnames = ['index.html','outline.pdf','outline1.png', 'reminders1.png', \
-             'announcements1.png','reminders.pdf','announcements.pdf']
+             'announcements1.png','reminders.pdf','announcements.pdf', \
+             'random_order_generator.py']
 
 thumbheader = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>

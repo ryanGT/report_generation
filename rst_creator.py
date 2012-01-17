@@ -145,6 +145,7 @@ class rst_file(txt_mixin.txt_file_with_list):
             self.pathin = pathin#then set pathin after
                                 #txt_file_with_list.__init__
         self.title_dec = rst_section_level_1()
+        self.subtitle_dec = rst_subtitle_dec()
         self.section_dec = rst_section_level_2()
         self.subsection_dec = rst_section_level_3()
         self.figure_dec = figure_decorator()
@@ -166,11 +167,28 @@ class rst_file(txt_mixin.txt_file_with_list):
     def save(self):
         self.writefile(self.pathin)
         self.saved = True
+
         
     def add_title(self, title_text):
         title_list = self.title_dec(title_text)
         self.list.extend(title_list)
 
+
+    def add_subtitle(self, subtitle_text):
+        subtitle_list = self.subtitle_dec(subtitle_text)
+        self.list.extend(subtitle_list)
+
+
+    def add_enum_list(self, listin):
+        enum_list = []
+
+        for item in listin:
+            curline = '#. ' + item
+            enum_list.append(curline)
+
+        enum_list.append('')
+        
+        self.list.extend(enum_list)
 
     def to_html(self):
         if not self.saved:
