@@ -6,12 +6,39 @@ def list_to_table_row(listin):
     return row_str
 
 
+def csv_header(headerpath=None, \
+               lhead='', rhead='', chead='', \
+               lfoot='', rfoot='', cfoot=''):
+
+    if headerpath is None:
+        if os.path.exists('header.tex'):
+            headerpath = 'header.tex'
+        else:
+            headerpath = '/home/ryan/git/report_generation/class_list_header.tex'
+            
+    headerline = '\\input{%s}' % headerpath
+    latex_out = [headerline]
+    out = latex_out.append
+    out('\\pagestyle{fancy}')
+    ws = ' '*4
+    out(ws + '\\lhead{%s}' % lhead)
+    out(ws + '\\rhead{%s}' % rhead)
+    out(ws + '\\chead{%s}' % chead)
+    out(ws + '\\rfoot{%s}' % rfoot)
+    out(ws + '\\lfoot{%s}' % lfoot)
+    out(ws + '\\cfoot{%s}' % cfoot)
+    out('\\renewcommand{\headrulewidth}{0pt}')
+    out('\\begin{document}')
+    return latex_out
+
+
 def csv_to_latex_table(csvlist, labels=None, extra_col_labels=None, \
                        fmt_str=None, vrule='\\rule{0pt}{14pt}', \
                        hrule=None, headerpath=None, outpath=None, \
                        items_per_page=20, delim=',', \
                        lhead='', rhead='', chead='', \
-                       lfoot='', rfoot='', cfoot=''):#cfoot='\\thepage'
+                       lfoot='', rfoot='', cfoot='', \
+                       just_tabular=False):#cfoot='\\thepage'
     if labels is None:
         labels = csvlist.pop(0)
 
@@ -26,27 +53,18 @@ def csv_to_latex_table(csvlist, labels=None, extra_col_labels=None, \
         fmt_str = '|l' * N + '|'
 
 
-    if headerpath is None:
-        if os.path.exists('header.tex'):
-            headerpath = 'header.tex'
-        else:
-            headerpath = '/home/ryan/git/report_generation/class_list_header.tex'
-
-    headerline = '\\input{%s}' % headerpath
     startline = '\\begin{tabular}{%s}' % fmt_str
-    latex_out = [headerline]
+
+    if just_tabular:
+        latex_out = [startline]
+    else:
+        latex_out = csv_header(headerpath, \
+                               lhead=lhead, rhead=rhead, chead=chead, \
+                               lfoot=lfoot, rfoot=rfoot, cfoot=cfoot)
+        latex_out.append(startline)
+
     out = latex_out.append
-    out('\\pagestyle{fancy}')
-    ws = ' '*4
-    out(ws + '\\lhead{%s}' % lhead)
-    out(ws + '\\rhead{%s}' % rhead)
-    out(ws + '\\chead{%s}' % chead)
-    out(ws + '\\rfoot{%s}' % rfoot)
-    out(ws + '\\lfoot{%s}' % lfoot)
-    out(ws + '\\cfoot{%s}' % cfoot)
-    out('\\renewcommand{\headrulewidth}{0pt}')
-    out('\\begin{document}')
-    out(startline)
+            
     out('\\hline')
 
     label_row = list_to_table_row(labels)
@@ -88,7 +106,9 @@ def csv_to_latex_table(csvlist, labels=None, extra_col_labels=None, \
             out('\\hline')
 
     out('\\end{tabular}')
-    out('\\end{document}')
+
+    if not just_tabular:
+        out('\\end{document}')
 
     if outpath is not None:
         txt_mixin.dump(outpath, latex_out)
