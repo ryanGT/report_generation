@@ -1,6 +1,6 @@
 import txt_mixin
 
-from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 class rst_file(txt_mixin.txt_file_with_list):
     def filter_dec(self, ind, dec='==='):
@@ -9,8 +9,8 @@ class rst_file(txt_mixin.txt_file_with_list):
             return True
         else:
             return False
-        
-                   
+
+
     def find_section_inds(self, title, dec='==='):
         """Find all instances of title in self.list, then filter so
         that only thos followed by a line starting with dec are left.
@@ -42,10 +42,10 @@ class rst_file(txt_mixin.txt_file_with_list):
             return self.list[start_ind:end_ind]
         except AssertionError:
             return None
-        
-    
-                             
-        
+
+
+
+
     def replace_section(self, title, new_list, dec='===', force=False):
         """Replace the content of a section with title title with
         new_list.
@@ -64,6 +64,6 @@ class rst_file(txt_mixin.txt_file_with_list):
             new_list.append('')
         start_ind, end_ind = self.find_section_inds(title, dec=dec)
         self.list[start_ind:end_ind] = new_list
-        
 
-            
+
+

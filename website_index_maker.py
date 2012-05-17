@@ -6,7 +6,7 @@ import rwkos
 
 import txt_mixin
 
-from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 reload(pyp_to_rst)
 
@@ -64,7 +64,7 @@ class subfolder_abstract(object):
                                       subclass=self.subclass,
                                       myskips=self.myskips) \
                         for item in self.subfolders]
-        
+
 
     def __init__(self, index_name = 'index.html', title=None, \
                  subclass=None, myskips=[], level=0):
@@ -112,9 +112,9 @@ class subfolder(subfolder_abstract):
 
         subfolder_abstract.__init__(self, index_name=index_name, \
                                     title=title, subclass=subclass, \
-                                    myskips=myskips, level=level)                                    
+                                    myskips=myskips, level=level)
         self.topnavlinks = [relpath.relpath(item, self.relpath) for item in self.toplinks]#used for sidebar navigation in Krauss blog
-        
+
 
     def has_link(self):
         if self.mylinks or self.toplinks:
@@ -134,7 +134,7 @@ class subfolder(subfolder_abstract):
           curline = self.level*ws+'- `%s <%s>`_'% (nameonly, link)
           listout.append(curline)
        return listout
-    
+
 
     def to_rst(self):
        if not self.has_link():
@@ -167,7 +167,7 @@ class rst_saver_mixin(object):
        elif hasattr(self, 'abspath'):
           my_dir = self.abspath
        return my_dir
-    
+
 
    def save_rst(self):
        if not hasattr(self, 'rst'):
@@ -201,9 +201,9 @@ class rst_saver_mixin(object):
          finally:
             print('switching back to '+curdir)
             os.chdir(curdir)
-      
-      
-       
+
+
+
 #-----------------------------------------
 class main_index(subfolder, rst_saver_mixin):
     def __init__(self, main_dir, pats=['*.html','*.pdf'], \
@@ -227,7 +227,7 @@ class main_index(subfolder, rst_saver_mixin):
         subfolder_abstract.__init__(self, index_name=index_name, \
                                     title=title, subclass=subclass, \
                                     myskips=myskips, level=0)
-        
+
 
 
     def to_rst(self):
@@ -242,7 +242,7 @@ class main_index(subfolder, rst_saver_mixin):
           listout.extend(folder.to_rst())
           listout.append('')
        self.rst = listout
-        
+
 
     def rst_to_html(self):
        if not hasattr(self, 'rst_path'):
@@ -291,18 +291,18 @@ class rst_subfolder(subfolder, rst_saver_mixin):
       if not self.title:
          self.title = self.name
       self.rst.extend(title_dec(self.title))
-      
+
       for folder in self.filtered_folders:
          folder.to_rst()
          self.rst.append(self.rst_link_one_folder(folder))
       return self.rst
-   
+
 
    def filter_subs(self):
       self.filtered_folders = [item for item in self.folders \
                                if item.has_link()]
 
-      
+
    def to_rst(self, *args, **kwargs):
       self.filter_subs()
       if len(self.toplinks) == 1:
@@ -314,11 +314,11 @@ class rst_subfolder(subfolder, rst_saver_mixin):
       elif len(self.toplinks) > 1:
          raise StandardError, \
                "Found a folder with more than one index file:" + \
-               str(self.toplinks) 
+               str(self.toplinks)
       else:
          self.rst_folders()
          self.save_rst()
-               
+
 
    def rst2html(self):
       rst_saver_mixin.rst2html(self)
@@ -342,7 +342,7 @@ class rst_main_index(rst_subfolder, main_index):
        main_index.__init__(self, main_dir, pats=pats, index_name=index_name, \
                            title=title, header=header, subclass=subclass)
 
-   
+
 
 
 months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug',\
@@ -372,7 +372,7 @@ def rst_to_html_list(listin, clean=True):
       listout = [item.rstrip() for item in listout]
    return listout
 
-   
+
 class blog_day(txt_mixin.txt_file_with_list):
    def replace_navbar(self, link_list, save=True):
       start = '<div id="sidebar">'
@@ -408,7 +408,7 @@ class blog_month(subfolder):
 
     def dict_to_rst(self):
        self.rst_links = dict_to_rst(self.day_dict, prestr='- ')
-       
+
 
     def gen_nav(self, firstdays_dict):
        navlist = []
@@ -436,7 +436,7 @@ class blog_month(subfolder):
              raise StandardError, 'You cannot call replace_nav until after you call gen_nav'
        for day in self.days:
           day.replace_navbar(self.navlist)
-       
+
 
 
 class blog_year(subfolder):
@@ -445,7 +445,7 @@ class blog_year(subfolder):
        self.months = [blog_month(item, self.basepath, self.rel_link_paths, \
                                  level=self.level+1, parent=self) \
                         for item in self.subfolders]
-       
+
        self.month_links = [relpath.relpath(item, self.abspath) for item in self.subfolders]
        self.first_day_links = [item.first_day for item in self.months]
        keys = [item.name for item in self.months]
@@ -456,7 +456,7 @@ class blog_year(subfolder):
     def replace_nav(self):
        for month in self.months:
           month.replace_nav()
-       
+
 
 
 
@@ -479,7 +479,7 @@ def copy_for_ken():
                          pats=['*.pdf'], myskips=myskips)
    newbase = '/home/ryan/for_ken/'
    nb1 = os.path.join(newbase, '2007')
-   
+
    mypath2 = '/home/ryan/siue/classes/AdvDynamics/2008/'
    my_index2 = main_index(mypath2, title='ME 530 Advanced Dynamics 2008',
                          pats=['*.pdf'], myskips=myskips)
@@ -518,5 +518,5 @@ if __name__ == '__main__':
        my_index = main_index(cur_root, title=title, pats=mypats)
        my_index.rst_to_html()
 
-    
-        
+
+

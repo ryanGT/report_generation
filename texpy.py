@@ -17,7 +17,7 @@ import re, copy, os, pdb
 
 from rwkmisc import rwkstr
 
-from  IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 import texfilemixin
 
@@ -70,7 +70,7 @@ default_envmap = {'py':pytex.OuterBlock, \
 
 
 exclude_lhs_list = [pytex.LoopBlock, pytex.ArbitraryBlock]
-            
+
 class TexPyFile(texfilemixin.TexFileMixin):#PythonFile):
     """This class represents a Latex file with some Python code
     embedded in it."""
@@ -101,7 +101,7 @@ class TexPyFile(texfilemixin.TexFileMixin):#PythonFile):
         mybool = self.FindNextEnv()
         self.ind = oldind#reset ind
         return bool(mybool)
-        
+
 
 
     def FindNextEnv(self, listname='lines'):
@@ -188,7 +188,7 @@ class TexPyFile(texfilemixin.TexFileMixin):#PythonFile):
         codelist = code.split('\n')
         return envkey, codelist
 
-        
+
     def Execute(self, namespace={}, answer=False, replacelist=None, echo=0, **kwargs):
         """Execute each Python block, substituting the Latex output.
         Because we will be removing lines of varying length from the
@@ -325,7 +325,7 @@ class TexPYPFile(TexPyFile):#PythonFile):
                     rlatex = curlatex.replace('\\','\\\\')
                     repchunk = self.p2.sub(rlatex, chunk[0], count=1)
                     self.lines[self.matchline:self.matchline] = [repchunk]
-                else:        
+                else:
                     self.lines[self.matchline:self.matchline] = curlatex
                     self.ind = self.matchline+curN
             else:

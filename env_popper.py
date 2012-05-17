@@ -7,7 +7,6 @@ import pylab_util as PU
 from pyp_basics import line, section
 from pytexutils import break_at_pipes, OptionsDictFromList
 
-#from IPython.Debugger import Pdb
 from IPython.core.debugger import Pdb
 import pdb
 
@@ -159,7 +158,7 @@ class env_popper(object):
         #find periods with only one space after them
         p = re.compile(r'\. ([A-Z])')
         mystr = p.sub(r'.  \1',mystr)
-        
+
         p2 = re.compile(self.pat+'(.*)}', re.DOTALL)
         q2 = p2.search(mystr)
         code = q2.group(2)
@@ -274,7 +273,7 @@ class pyp_figure(object):
         for key in map_list:
             if self.options.has_key(key):
                 setattr(self, key, self.options[key])
-        
+
 
 list_map = txt_mixin.default_map
 
@@ -309,8 +308,8 @@ class multicols(txt_mixin.txt_file_with_list):
             self.list.pop(0)
         while not self.list[-1]:
             self.list.pop()
-            
-        
+
+
     def __init__(self, string_in, objlist, widths=None, \
                  level=0, *args, **kwargs):
         txt_mixin.txt_file_with_list.__init__(self, pathin=None)
@@ -336,7 +335,7 @@ class multicols(txt_mixin.txt_file_with_list):
             cur_func = getattr(self.list, item)
             setattr(self, item, cur_func)#map functions from self.list
 
-        
+
     def break_up_cols(self):
         self.inds = self.findallre('^[-=]+$')
         self.col_objs = []
@@ -347,7 +346,7 @@ class multicols(txt_mixin.txt_file_with_list):
             prev_ind = ind+1
         cur_slice = self.objlist[prev_ind:]
         self.col_objs.append(cur_slice)
-        
+
 
     def parse_cols(self):
         if not hasattr(self, 'col_objs'):
@@ -369,7 +368,7 @@ class twocols(multicols):
         self.parse_cols()
 
 
-class column(object):            
+class column(object):
     def __init__(self, objlist):
         self.objlist_in = objlist
         #self.clean_start()
@@ -390,7 +389,7 @@ class pyp_eqn(object):
             self.env = 'equation'
         self.objlist = objlist
         self.level = level
-        
+
 
 
 class pyp_code(object):
@@ -409,8 +408,8 @@ class pyp_link(object):
         self.objlist = objlist
         self.level = level
 
-        
-    
+
+
 pyp_def_map = {'fig':pyp_figure, 'twocols':twocols, \
                'eqn':pyp_eqn,'code':pyp_code, 'link':pyp_link}
 
@@ -429,7 +428,7 @@ class pyp_env_popper(env_popper):
         self.objlist = copy.copy(self.list)
         self.def_level = def_level
         self.lines = [item.string for item in self.list]
-        
+
 
     def PopEnv(self, startline=None, endline=None, clear=True, \
                listname='objlist', clearnames=['lines']):#'objlist']):
@@ -450,7 +449,7 @@ class pyp_env_popper(env_popper):
     def Chunk_from_Objlist(self, objlist):
         chunk = [item.string for item in objlist]
         return chunk
-    
+
 
     def PopNext(self, clear=True, list1name='lines', \
                 list2name='objlist'):
@@ -502,7 +501,7 @@ class python_report_env(object):
 
     def To_PYP(self, **kwargs):
         raise NotImplementedError
-    
+
 
 class py_figure(python_report_env):
     """A pyfig environment is a chunk of code that generates a figure.
@@ -574,7 +573,7 @@ class py_figure(python_report_env):
         pyp_out_str += self.pathout+'}'
         outlist.append(pyp_out_str)
         return outlist
-        
+
 
 def find_lhs(line):
     """Find the left hand side (lhs) of an assignment statement,
@@ -597,8 +596,8 @@ def find_lhs(line):
     else:
         #there is an equal sign, but no (
         return line[0:ind]
-    
-    
+
+
 ignore_list = ['!','-','=']
 
 class py_body(python_report_env):
@@ -619,7 +618,7 @@ class py_body(python_report_env):
                 lhs = find_lhs(line)
                 if echo:
                     pyp_out.append('code{'+line+'}')
-                if lhs and lhs.find('print')==-1: 
+                if lhs and lhs.find('print')==-1:
                     myvar = eval(lhs, self.namespace)
                     if usetex:
                         outlines, env = VL.VariableToLatex(myvar, lhs,**kwargs)
@@ -638,8 +637,8 @@ class py_body(python_report_env):
 class py_no(python_report_env):
     def To_PYP(self, **kwargs):
         return []
-        
-        
+
+
 
 py_def_map = {'fig':py_figure, 'body':py_body,'no':py_no}
 
@@ -665,8 +664,8 @@ class python_report_popper(env_popper):
         self.pat2 = self.preface+'('+self.keystr+')'
         self.p2 = re.compile(self.pat2)
         self.first = True
-        
-        
+
+
     def FindNextEnv(self):
         """Find the next line matching self.p (the re.compile-ed
         version of self.pat), starting at line self.ind."""
@@ -765,9 +764,9 @@ class reg_exp_popper(simple_popper, python_report_popper):
     marked by the start of the next."""
     def __init__(self, listin, start_re, end_re=None):
         simple_popper.__init__(self, listin, start_re)
-        self.end_re = end_re        
+        self.end_re = end_re
         self.p_end = re.compile(self.end_re)
-        
+
     def FindEndofEnv(self, matchline=None):
         #this needs to handle pyfig env's better now that pat just
         #looks for # without a !
@@ -791,7 +790,7 @@ def line_starts_with_non_white_space(linein):
         return False
     else:
         return True
-    
+
 
 class rst_popper(env_popper):
     """This is my quick and dirty attemp to convert a sage rst
@@ -803,7 +802,7 @@ class rst_popper(env_popper):
         #self.keys = self.map.keys()
         #self.keystr = '|'.join(self.keys)
         self.preface = preface
-        self.pat = self.preface + '\.\. (py|pyno)::' 
+        self.pat = self.preface + '\.\. (py|pyno)::'
         self.p = re.compile(self.pat)
         self.lines = copy.copy(listin)
         self.ind = 0
@@ -882,11 +881,11 @@ class rst_popper(env_popper):
                 keepgoing = False
             n += 1
         return self.list_out
-        
+
 
     def save(self, outpath):
         txt_mixin.dump(outpath, self.list_out)
-        
+
 
 if __name__ == '__main__':
     filepath = '/home/ryan/siue/Research/DT_TMM/cantilever_beam/two_masses_analysis.rst'
@@ -898,5 +897,5 @@ if __name__ == '__main__':
     pne, ext = os.path.splitext(filepath)
     outpath = pne + '.sage'
     mypopper.save(outpath)
-    
-    
+
+

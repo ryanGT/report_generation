@@ -16,7 +16,7 @@ def one_lecture_nh(lecture_path, glob_pat, relfolder='screensize', \
 
     N = len(slide_paths)
     num_on_page = 0
-    
+
     for i, curslide in enumerate(slide_paths):
         if (i % spp) == 0:
             num_on_page = 0
@@ -60,7 +60,7 @@ def gimp_lectures_one_course(lecture_path, date_list, \
     out('\\begin{document}')
 
     N = len(date_list)
-    
+
     for i, date_str in enumerate(date_list):
         curpath = os.path.join(lecture_path, date_str)
         curlist = one_lecture_nh(curpath, glob_pat, main_path=lecture_path, spp=spp)
@@ -71,7 +71,7 @@ def gimp_lectures_one_course(lecture_path, date_list, \
             out('')
 
     out('\\end{document}')
-            
+
     outpath = os.path.join(lecture_path, outname)
     txt_mixin.dump(outpath, outlist)
     return outpath
@@ -91,11 +91,11 @@ def run_latex_and_copy(texpath, portfolio_dir):
         shutil.copy(pdfpath, dest_path)
     finally:
         os.chdir(curdir)
-        
+
 
 
 if __name__ == '__main__':
-    from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
     lecture_path_592 = '/home/ryan/nonlinear_controls_2011/lectures'
     date_list_592 = ['01_18_11', \
@@ -114,4 +114,4 @@ if __name__ == '__main__':
                                        rhead=rhead_592)
     portfolio_dir_592 = '/home/ryan/siue/tenure/course_portfolios/592_nonlinear_controls'
     run_latex_and_copy(outpath, portfolio_dir_592)
-    
+

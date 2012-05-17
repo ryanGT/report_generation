@@ -3,7 +3,7 @@
 
 #import relpath
 
-#from  IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 #import pytexutils
 #reload(pytexutils)
@@ -51,8 +51,8 @@ class TexFileMixin(object):
             return self.latexlist[startind:]
         else:
             return self.latexlist[startind:endind]
-        
-        
+
+
     def SaveNH(self, filename=None):
         """Save the body of a latex file to a file.  Note that even if
         filename is given, an _nh is inserted at the end before the
@@ -66,7 +66,7 @@ class TexFileMixin(object):
         self.nhpath = pne2+'_nh.tex'
         self.body = self._FindBody()
         writefile(self.nhpath, self.body)
-        
+
 
     def AddHeader(self, headerpath=None, verbosity=1):
         """Search for a file named header.tex somewhere in sys.path
@@ -80,7 +80,7 @@ class TexFileMixin(object):
             print('not adding a header')
             return
         fn="header.tex"
-        headless=1      
+        headless=1
         fp=""
         if headerpath is not None:
             if os.path.exists(headerpath):
@@ -120,7 +120,7 @@ class TexFileMixin(object):
             self.AddHeader()
         ind = self.latexlist.index(bdstr)
         self.latexlist[ind:ind]=insertlist
-            
+
 
 
     def RunLatex(self, dvi=False, openviewer=False, sourcespecials=True, forceepstopdf=1):
@@ -133,11 +133,11 @@ class TexFileMixin(object):
             self.EpstoPdf(force=forceepstopdf)
         return RunLatex(self.latexpath, dvi=dvi, openviewer=openviewer, sourcespecials=sourcespecials, log=None)
 
-        
+
     def myprint(self, msg):
         """This is an awkward method put here for backward
         compatability.  Apparnetly, one of my old classes had a
         myprint method to make it easy to switch where log messages
         go.  I am just passing them to print for now."""
         print(msg)
-        
+

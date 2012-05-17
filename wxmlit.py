@@ -6,7 +6,7 @@ from pytex import readfile, writefile
 
 import re, os, shutil, copy
 
-from  IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 
 def CleanList(listin):
@@ -61,8 +61,8 @@ class wxmFile:
         if os.path.exists(pathout):
             shutil.copy(pathout, fno+'_backup'+ext)
         return pathout
-        
-        
+
+
     def ToWLT(self, pathout=None):
         if pathout is None:
             pathout = self.CreatePathout('.wlt')
@@ -89,8 +89,8 @@ class wxmFile:
         myout.rawlist = copy.copy(self.outlines)
         myout.pathin = pathout
         return myout
-    
-    
+
+
 class wxmLitFile(wxmFile):
 ##         /* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
 
@@ -111,7 +111,7 @@ class wxmLitFile(wxmFile):
 
     def ToWLT(self, pathout=None):
         raise "ThisIsGoingTheWrongWay", "This is probably not safe and has been disabled."
-    
+
 
     def ToWXM(self, pathout=None):
         ############################
@@ -183,4 +183,4 @@ class wxmLitFile(wxmFile):
         myout.rawlist = copy.copy(self.wxmlist)
         myout.pathin = pathout
         return myout
-                
+

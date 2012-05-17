@@ -2,7 +2,6 @@ import os, copy, re, shutil
 import pytexutils, txt_mixin
 #reload(txt_mixin)
 
-#from IPython.Debugger import Pdb
 from IPython.core.debugger import Pdb
 import pdb
 
@@ -43,7 +42,7 @@ class pyp_file(txt_mixin.txt_file_with_list):
     def __init__(self, pathin, section_class=section):
         txt_mixin.txt_file_with_list.__init__(self, pathin)
         self.section_class = section_class
-        
+
     def _find_section_line_nums(self):
         templist = self.findallre(secpat)
         self.section_line_nums = tweak_section_linenums(templist)
@@ -55,8 +54,8 @@ class pyp_file(txt_mixin.txt_file_with_list):
             self._find_section_line_nums()
         self.sections = list_of_sections(self.list, self.section_line_nums, \
                                          myclass=self.section_class)
-        
-        
+
+
     def parse(self):
         if not hasattr(self, 'sections'):
             self.find_sections()
@@ -73,7 +72,7 @@ class slide(object):
         self.body_lines = copy.copy(lines[1:])
         while not self.body_lines[-1].string:
             self.body_lines.pop()
-        
+
 
     def parse(self):
         self.body_parser = env_popper.pyp_env_popper(self.body_lines)
@@ -155,7 +154,7 @@ class section_with_slides(section):
             else:
                 fn = index-start
                 return self.slides[fn], fn
-            
+
 
     def get_slide(self, index):
         n = self.total_num_slides()
@@ -168,9 +167,9 @@ class section_with_slides(section):
                     return slide, start
         else:
             return self._get_slide(index, start)
-            
 
-    
+
+
 class pyp_presentation(pyp_file):
     def __init__(self, pathin, section_class=section_with_slides):
         txt_mixin.txt_file_with_list.__init__(self, pathin)

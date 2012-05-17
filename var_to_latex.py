@@ -10,7 +10,6 @@ try:
 except:
     quantities_imported = False
 
-#from IPython.Debugger import Pdb
 from IPython.core.debugger import Pdb
 import pdb
 s = sympy.var('s')
@@ -23,7 +22,7 @@ sympy_profile = {'mainvar' : s, \
                  'descending' : True,
                  'inline':None,
                  }
-                 
+
 
 def isNum(item):
     """Check to see if an item is of some numeric data type."""
@@ -95,8 +94,8 @@ def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False, \
             return outstr
     else:
         return fmt % val
-            
-    
+
+
 
 
 def RowToLatex(rowin, fmt='%0.4g', eps=1e-12, debug=0):
@@ -116,12 +115,12 @@ def RowToLatex(rowin, fmt='%0.4g', eps=1e-12, debug=0):
         return ComplexNumToStr(rowin, eps=eps, fmt=fmt)
     elif is_sympy(rowin) or is_sage(rowin):
         if debug:
-            print('case 3')        
+            print('case 3')
         return sympy.latex(rowin, profile=sympy_profile)
     elif type(rowin) == matrix:
         if debug:
             print('case 4')
-        
+
         strlist = []
         for i in range(rowin.size):
             item = rowin[0,i]
@@ -149,7 +148,7 @@ def IsLongArray(arrayin, thresh=10):
 def ShortOneDArrayToLatex(arrayin, mylhs, fmt='%0.4g'):
     curstr = mylhs +' = '
     N = arrayin.shape[0]
-    curstr += '\\left[ \\begin{array}{'+'c'*N+'}' 
+    curstr += '\\left[ \\begin{array}{'+'c'*N+'}'
     outlist = [curstr]
     outlist.extend(_ArrayToLaTex(arrayin, fmt=fmt))
     outlist.append('\\end{array} \\right]')
@@ -171,7 +170,7 @@ def OneDArrayToLatex(arrayin, mylhs, fmt='%0.4g', maxelem=10, wrap=5):
         return ShortOneDArrayToLatex(arrayin, mylhs, fmt=fmt)
     else:
         curstr = mylhs +' & = &'
-        curstr += '\\left[ \\begin{array}{'+'c'*wrap+'}' 
+        curstr += '\\left[ \\begin{array}{'+'c'*wrap+'}'
         outlist = [curstr]
         row1 = arrayin[0:wrap]
         row1str = RowToLatex(row1, fmt=fmt)
@@ -215,7 +214,7 @@ def ArrayToLaTex(arrayin, mylhs, fmt='%0.4g', ams=True, \
         else:
             row0 = myvar[0]
             N = len(row0)
-            curstr += '\\left[ \\begin{array}{'+'c'*N+'}' 
+            curstr += '\\left[ \\begin{array}{'+'c'*N+'}'
         outlist  = [curstr]
         outlist.extend(_ArrayToLaTex(arrayin, fmt=fmt))
         if ams:
@@ -350,7 +349,7 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         env = 'equation'
     elif isinstance(myvar, poly1d):
         rhs, env = ArrayToLaTex(myvar.coeffs, mylhs, ams=ams)
-        
+
     elif isscalar(myvar):
         rhs = NumToLatex(myvar,fmt=fmt)
         #outlist = [mylhs +' = '+NumToLatex(myvar,fmt=fmt)]

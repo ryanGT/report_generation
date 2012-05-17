@@ -9,7 +9,7 @@ from scipy import *
 import txt_mixin
 from pytexutils import RunLatex
 
-from  IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 import os, re, shutil, glob, pdb
 
@@ -33,7 +33,7 @@ def CreateHTMLLink(filepath, linktext=''):
 
 def CreateSlideName(slidenum, basename='slide',fmt='%0.3d'):
     return basename+fmt%slidenum+'.html'
-    
+
 
 def ImageMajickResize(pathin, maxw=1200, maxh=1200, append='_w_1200', sizethresh=100000):
     pne, ext = os.path.splitext(pathin)
@@ -94,7 +94,7 @@ def ParseHeightWidth(string, percent=False, fmt='%d'):
             return string
     else:
         return string
-            
+
 
 def DictToHeightWidth(mydict, percent=False):
     """Try to discern the desired figure height and width based on
@@ -115,8 +115,8 @@ def DictToHeightWidth(mydict, percent=False):
     else:
         h = ''
     return w, h
-    
-    
+
+
 def WidthAndHeightToHTMLStyleTag(width, height=None, units='%'):
     outstr = ''
     if width:
@@ -124,7 +124,7 @@ def WidthAndHeightToHTMLStyleTag(width, height=None, units='%'):
     if height:
         outstr += 'height: %s'%height+units+';'
     return outstr
-        
+
 
 def DictToLatexFigString(mydict, mypath):
     outstr = '\\includegraphics['
@@ -293,7 +293,7 @@ def MakeBat(dest, reportdir=''):
     f.write(mydest)
     f.close()
     return batname
-    
+
 def RunLatexReplace(matchobj):
     linktext, dest = BreakLink(matchobj)
     batname = MakeBat(dest)
@@ -349,7 +349,7 @@ class Line:
         #q = p.search(self.string)
         self.string = p.sub(LinkLatexReplace, self.string)
 
-        
+
     def RunLinkToLatex(self):
         p = re.compile('rlink{(.*?)}')
         #q = p.search(self.string)
@@ -396,7 +396,7 @@ class Line:
         p = re.compile('path{(.*?)}')
         self.string = p.sub(pathReplace, self.string)
 
-        
+
     def ToLatex(self, reveal=True, revealfirst=True):
         strout = ''
         self.RunLinkToLatex()
@@ -439,8 +439,8 @@ class SectionHeading:
         if self.star:
             startstr += '*'
         return [startstr+'{'+self.title+'}']
-                 
-    
+
+
 class Figure:
     def __init__(self, path, width, units='percent', center=True):
         self.path = path
@@ -451,7 +451,7 @@ class Figure:
 
     def ToLatex(self):
         print("not implemented yet.")
-        
+
 
 class Slide(txt_mixin.txt_list):
     def __init__(self, listin=[], filname=None, linenum=None):
@@ -476,7 +476,7 @@ class Slide(txt_mixin.txt_list):
         self.StripList()
         self.GetTitle()
         self.ParseItemize()
-        
+
 
     def StripList(self):
         self.list = [item.strip() for item in self.rawlist]
@@ -532,7 +532,7 @@ class Slide(txt_mixin.txt_list):
             if curout != -1:
                 curreveal += 1
         prevind = -1
-        if not zeroinds:      
+        if not zeroinds:
             mylist = ItemizedList(self.list)
             self.objlist.append(mylist)
             if debug:
@@ -547,9 +547,9 @@ class Slide(txt_mixin.txt_list):
                 self.objlist.append(ItemizedList(self.list[prevind+1:]))
         if debug:
             print('self.objlist = '+str(self.objlist))
-        
-        
-                
+
+
+
 
     def GetTitle(self):
         firstline = self.list.pop(0)
@@ -567,8 +567,8 @@ class Slide(txt_mixin.txt_list):
             if 'n' in first:
                 self.reveal = False
             self.title = last.strip()
-        
-        
+
+
     def ToLatex(self):#, reveal=None):
         reveal = self.reveal
         part1 = '\\begin{frame}%[label=current]'
@@ -644,8 +644,8 @@ class Slide(txt_mixin.txt_list):
         myhtml.append('</HTML>')
         myhtml.tofile()
         return startnum+1
-        
-        
+
+
 
 
 class ItemizedList(Slide):
@@ -666,12 +666,12 @@ class ItemizedList(Slide):
         Slide.FindNestLevels(self, pat=pat)
         self.minlevel = min(self.levels)
         self.levels = [item-self.minlevel for item in self.levels]
-        
+
 
     def Parse(self):
         self.StripList()
         self.ParseItemize()
-        
+
 
     def ToLatex(self, reveal=True):
         if not self.objlist:
@@ -760,14 +760,14 @@ class Outline(txt_mixin.txt_list):
         self.list = [item for item in self.list if not o.match(item)]
         #self.rawlist = [item for item in self.rawlist if not o.match(item)]
         return self.list
-    
+
 
     def FindSections(self, secpat='^([s*]*): '):
         indlist = self.findallre(secpat)#, match=False)
         seclist = [SectionHeading(self[ind], ind, secpat=secpat) for ind in indlist]
         return seclist, indlist
-        
-        
+
+
     def BreakOutline(self, pat='^\s*[\*#] ', secpat='^([s*]*): '):
         indlist = self.findallre(pat, match=False)
         secinds = self.findallre(secpat, match=False)
@@ -788,7 +788,7 @@ class Outline(txt_mixin.txt_list):
         if last:
             nestedlist.append(last)
         return nestedlist, indlist
-        
+
 
 class Presentation(txt_mixin.txt_list):
     def __init__(self,listin=[],filename="",log=None, presdir=None):
@@ -796,7 +796,7 @@ class Presentation(txt_mixin.txt_list):
         if presdir is None:
             presdir = os.getcwd()
         self.presdir = presdir
-        
+
 
     def GetTexName(self):
         fno, ext = os.path.splitext(self.filename)
@@ -807,7 +807,7 @@ class Presentation(txt_mixin.txt_list):
             self.texname = self.filename
             self.pypname = ''
         return self.texname
-    
+
 
     def Initialize(self):
         call_read = False
@@ -824,7 +824,7 @@ class Presentation(txt_mixin.txt_list):
                 filename = fno+".tex"
                 print('outlinepath='+outlinepath)
                 print('    exists='+str(os.path.exists(outlinepath)))
-        
+
         if filename:
             folder, myname = os.path.split(filename)
             self.presdir = folder
@@ -833,8 +833,8 @@ class Presentation(txt_mixin.txt_list):
         if call_read and os.path.exists(outlinepath):
             self.ReadOutline(outlinepath)
             self.ParseOutline()
-            
-        
+
+
     def ReadOutline(self, outlinefile):
         self.outline = Outline(filename=outlinefile)
         self.outline.Read()
@@ -844,12 +844,12 @@ class Presentation(txt_mixin.txt_list):
         nestedlist, frameinds = self.outline.BreakOutline()
         self.sectionheadings, secinds = self.outline.FindSections()
         self.slides = NestedListToSlides(nestedlist, frameinds)
-        
+
         mydict = dict(zip(frameinds, self.slides))
         dict2 = dict(zip(secinds, self.sectionheadings))
         mydict.update(dict2)
         self.dict = mydict
-        
+
 
 
     def ToLatex(self, title='My Title', author='Ryan Krauss', theme='siue_white_nosubs', date='\\today', institute='Southern Illinois University Edwardsville', headerpath=None, headerinserts=[]):
@@ -897,7 +897,7 @@ class Presentation(txt_mixin.txt_list):
             self.ToLatex()
         return RunLatex(self.GetTexName(), dvi=dvi)
         #textfiles.latexlist.RunLatex(self.filename, dvi=dvi)
-    
+
 
     def CopyHTMLFiles(self, sourcedir='pythonutil/html_pres_files/'):
         sourcedir = rwkos.FindFullPath(sourcedir)
@@ -909,7 +909,7 @@ class Presentation(txt_mixin.txt_list):
             destpath = os.path.join(destdir, filename)
             if not os.path.exists(destpath):
                 shutil.copy2(item, destdir)
-            
+
 
     def ToHTML(self, title, reveal=True, presdir=None, basename='slide'):
         if presdir is None:
@@ -976,8 +976,8 @@ def PaperToPres(pathin, pathout, figstr='height:0.75'):
     outlist = txt_mixin.txt_list(listout, pathout)
     outlist.tofile()
     return listout
-    
-    
+
+
 
 if __name__=='__main__':
     curdir = os.getcwd()
@@ -986,7 +986,7 @@ if __name__=='__main__':
     mydir = '/home/ryan/mechatronics_2008/python_intro'
     mydir = rwkos.FindFullPath(mydir)
     os.chdir(mydir)
-    
+
     #outlinefile = 'what_is_mechatronics.pyp'
     #outlinefile = 'presentation.pyp'
     #outlinefile = 'debug.pyp'
@@ -1007,6 +1007,6 @@ if __name__=='__main__':
         mylatex = txt_mixin.txt_list(latexlines, outpath)
         mylatex.tofile()
 
-    
+
 
     os.chdir(curdir)

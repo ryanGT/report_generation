@@ -1,6 +1,6 @@
 import Image, os, glob, pdb, shutil
 
-from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 from numpy import mod
 import file_finder
 reload(file_finder)
@@ -33,10 +33,10 @@ border-style: solid;
 
 img.h90{
 height:90%;
-} 
+}
 img.w95{
 width:95%;
-} 
+}
 </style>
 <title>%TITLE%</title>
 </head>
@@ -63,10 +63,10 @@ margin-bottom:2px;
 
 img.h90{
 height:90%;
-} 
+}
 img.w95{
 width:95%;
-} 
+}
 </style>
 </head>
 <h3>%FILENAME%</h3>
@@ -85,7 +85,7 @@ newowntemplate = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//E
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
   <title>%TITLE%</title>
-<style type="text/css">  
+<style type="text/css">
 img {
 border:2px;
 margin:10px;
@@ -97,10 +97,10 @@ border-style: solid;
 
 img.h90{
 height:90%;
-} 
+}
 img.w95{
 width:95%;
-} 
+}
 </style>
 </head>
 <body>
@@ -124,7 +124,7 @@ def inskipnames(pathin):
 
 def dont_skip_me(pathin):
    return not inskipnames(pathin)
-   
+
 def pictsindir(folder, exts=['*.jpg']):
    """Find all the pictures in folder, not looking in subfolders, but
    checking for the upper and lower cases versions of exts."""
@@ -166,8 +166,8 @@ def _resize(pathin, size):
    img = Image.open(pathin)
    img.thumbnail(size, Image.ANTIALIAS)
    return img
-   
-      
+
+
 def _resize_older_slower(image, maxSize, method = 3):
    """ im = maxSize(im, (maxSizeX, maxSizeY), method = Image.BICUBIC)
 
@@ -205,7 +205,7 @@ class Thumbnail:
       self.size = size
       self.quality = quality
 
-      
+
    def MakeThumbfolder(self):
       folderexists = os.path.exists(self.thumbfolder)
       if not folderexists:
@@ -215,7 +215,7 @@ class Thumbnail:
 
    def Exists(self):
       return os.path.exists(self.thumbpath)
-         
+
 
    def Resize(self):
       """Resize using Image.thumbnail, which modifies the image in
@@ -250,7 +250,7 @@ class Thumbnail:
                skip = True
          else:
             skip = True
-               
+
       if skip:
          if verbosity > 0:
             print('skipping: '+self.pathin)
@@ -259,7 +259,7 @@ class Thumbnail:
       self.Resize()
       self.Save()
       return self.img
-      
+
 
 class CacheImage(Thumbnail):
    """This class is for creating a caching screen sized images
@@ -297,7 +297,7 @@ def resize_one(pathin, size=[300,200], thumbdir='thumbnails', force=False, verbo
        #scaled = _resize(pathin, size)
        #scaled.save(outpath, qualtiy=85)
        mythumb.ResizeAndSave()
-    
+
 
 def HTML_one_thumb(filename, htmldir='html', thumbdir='thumbnails'):
     temp = """
@@ -353,7 +353,7 @@ class HTMLImage:
       self.prevfile = prevfile
       self.nextfile = nextfile
       self.screensizedir = screensizedir
-      
+
 
    def GenerateThumbnail(self, size=[300,200], force=False, **kwargs):
       resize_one(self.jpegpath, size=size, force=force, **kwargs)
@@ -379,13 +379,13 @@ class HTMLImage:
       #print('writing '+self.htmlpath)
       self.html_str = myhtml
 
-      
-      
+
+
    def GenerateHTML(self, **kwargs):
       htmlstr = HTML_one_thumb(self.jpegname, **kwargs)
       return htmlstr
 
-                             
+
 
 class HTMLImage2(HTMLImage):
    def __init__(self, pathin, screensizedir='screensize', ext='.jpg', \
@@ -395,7 +395,7 @@ class HTMLImage2(HTMLImage):
       junk, self.rawname = os.path.split(pathin)
       pathjpg = pne+ext
       HTMLImage.__init__(self, pathjpg, prevfile, nextfile)
-      self.screensizedir = screensizedir 
+      self.screensizedir = screensizedir
       self.htmlfolder = htmlfolder
 
 
@@ -422,7 +422,7 @@ class HTMLImage2(HTMLImage):
       #pathout = os.path.join(htmlfolder, htmlfilename)
       pathout = htmlfilename
       return pathout
-   
+
 
    def _wrap_link(self, linkpath, text, **kwargs):
       htmlpath = self._to_html_path(linkpath)
@@ -448,15 +448,15 @@ class HTMLImage2(HTMLImage):
                                         align='RIGHT', width=mywidth))
       else:
          navlist.append(self._wrap_TD(""))
-      
+
       navlist.append('</TR>')
       navlist.append('</TABLE>')
       navstr = '\n'.join(navlist)
       self.navlist = navlist
       return navstr
-      
 
-      
+
+
    def GenerateOwnHTML(self, folder='html', **kwargs):
       #need next and previous links
       self.htmlfolder = os.path.join(self.folder,folder)
@@ -472,7 +472,7 @@ class HTMLImage2(HTMLImage):
       navstr = self._gen_bottom_nav_table()
       myhtml += '\n'
       myhtml += navstr
-      myhtml += '\n'      
+      myhtml += '\n'
       myhtml += tail
       self.html_str = myhtml
 
@@ -484,19 +484,19 @@ class css_line_delete_mixin:
       for item in delete_list:
          css_string = css_string.replace(item+'\n', '')
       return css_string
-   
+
 
 class HTMLImage3(HTMLImage2, css_line_delete_mixin):
    def GenerateOwnHTML(self, folder='html', **kwargs):
       HTMLImage2.GenerateOwnHTML(self, folder=folder, **kwargs)
       self.html_str = self.delete_list_from_str(self.html_str)
 
-      
+
 
 def FilenamesFromListofPaths(listin):
    listout = [os.path.split(item)[1] for item in listin]
    return listout
-       
+
 
 #######################
 #
@@ -566,7 +566,7 @@ class ImageResizerDir(Image_Finder):
             print('resizing: '+item.pathin)
          item.ResizeAndSave()
 
-      
+
 class ImageResizer900by600(ImageResizerDir):
    def __init__(self, topdir, resizeclass=CacheImage, \
                 resizefolder='900by600', size=[900,600], \
@@ -584,7 +584,7 @@ class ImageResizerDVD(ImageResizerDir):
                                resizefolder=resizefolder, size=size, \
                                extlist=extlist, **kwargs)
 
-   
+
 
 class ThumbNailPage(Image_Finder):
    def __init__(self, folder, title=None, body=None, \
@@ -648,7 +648,7 @@ class ThumbNailPage(Image_Finder):
        for image in self.images:
           image.GenerateOwnHTML(**kwargs)
           image.Save_HTML()
-      
+
 
    def AddThumbNailTable(self, **kwargs):
        if not hasattr(self, 'images'):
@@ -682,8 +682,8 @@ class ThumbNailPage(Image_Finder):
       outstr = self.header + self.bodystr + self.tail
       self.full_bodystr = outstr
       return self.full_bodystr
-      
-      
+
+
    def ToFile(self, name='index.html'):
       outstr = self._build_body_str()
       outpath = os.path.join(self.folder,name)
@@ -827,7 +827,7 @@ class DirectoryPage(ThumbNailPage):
             if curlist:
                return curlist[0]
 
-         
+
    def Add_Other_Links_in_Subfolder(self, folder, extlist=None):
       """Find other files (not images - probably python, html, and
       pdf) in folder and create links to them."""
@@ -848,10 +848,10 @@ class DirectoryPage(ThumbNailPage):
    def _add_slide_in_subfolder_thumb(self, folder, name):
       fno, ext = os.path.splitext(name)
       ws = '        '
-      
+
       def myout(line):
          self.body.append(ws+line)
-         
+
       myout('<TD>')
       htmlpath = folder + '/html/' + fno + '.html'
       line1 = '<a href="%s">' % htmlpath
@@ -864,7 +864,7 @@ class DirectoryPage(ThumbNailPage):
       line2 = '<img src="%s"></a>' % thumbpath
       myout(line2)
       myout('</TD>')
-      
+
 
    def Add_Links_to_First_Two_Slides_in_Subfolder(self, folder):
       firstpath = self.Find_Lecture_Slide_in_Subfolder(folder, slidenum=1)
@@ -881,8 +881,8 @@ class DirectoryPage(ThumbNailPage):
             out('')
             self._add_slide_in_subfolder_thumb(folder, name)
          out('</TABLE>')
-   
-      
+
+
    def find_top_level_index_rst(self):
       top_level_rsts = self.Find_Top_Level_Files(['*.rst'])
       if len(top_level_rsts) > 0:
@@ -900,11 +900,11 @@ class DirectoryPage(ThumbNailPage):
       if bl:
          self.Add_bottom_link(br=False, dest=bl_dest)
       self.AddSubFolderLinks()
-      self.FindImages()      
+      self.FindImages()
       self.GenerateHTMLs()
       self.AddThumbNailTable()
       self.Add_Other_Links(['.py'], "Python Files:")
-      self.Add_Other_Links(['.m'], "Matlab Files:")      
+      self.Add_Other_Links(['.m'], "Matlab Files:")
       self.Add_Other_Links(['.pdf'], "PDF Files:")
       #self.Add_Other_Links(['.tex'], "LaTeX Files:")
       self.Add_Other_Links(['.html'], "HTML Files:")
@@ -948,7 +948,7 @@ link_dict = {'.py':'Python Files', \
              '.zip':'ZIP Archives', \
              '.tex':'LaTeX Files'}
 
-            
+
 class DirectoryPage_no_images(DirectoryPage_courses):
    def Create_Most(self, bl=True, bl_dest=None, \
                    extlist=['html','pdf','py','m'],\
@@ -972,7 +972,7 @@ class DirectoryPage_no_images(DirectoryPage_courses):
       if bl:
          self.Add_bottom_link(dest=bl_dest)
       self.ToFile()
-   
+
 
 class DirectoryPage3(DirectoryPage, css_line_delete_mixin):
    def ToFile(self, name='index.html'):
@@ -998,7 +998,7 @@ class top_level_lecture_page(DirectoryPage_courses):
             self.Add_Other_Links_in_Subfolder(item)
          out('</ul>')
       return self.body
-   
+
 
 class DirectoryPage_index_rst_only(DirectoryPage_no_images):
    """This class only runs rst2html on the index_*.rst files when they
@@ -1020,7 +1020,7 @@ class DirectoryPage_index_rst_only(DirectoryPage_no_images):
          return top_level_rsts[ind]
       else:
          return None
-   
+
 class MainPageMaker:
    def __init__(self, folder, title=None, body=None, \
                 htmldir='html', thumbdir='thumbnails'):
@@ -1036,8 +1036,8 @@ class MainPageMaker:
             #Pdb().set_trace()
             curpage = DirectoryPage(root)
             curpage.FullCreate()
-            
-      
+
+
 class MainPageMaker2:
    """This class will be similar to MainPageMaker but will do a couple
    of things differently:
@@ -1080,7 +1080,7 @@ class MainPageMaker2:
       print('Screen_Size_Maker.imagepaths=')
       for item in self.Screen_Size_Maker.allimagepaths:
          print item
-         
+
       self.Thumbnail_Maker = ImageResizerDir(folder, \
                                              resizefolder=thumbdir,\
                                              size=thumbsize, \
@@ -1095,7 +1095,7 @@ class MainPageMaker2:
          extlist = self.allcontentlist
       mybool = haspicts(folder, extlist)
       return mybool
-         
+
 
    def Go(self, toplevel_html_list=[], top_level_link=None):
       self.Screen_Size_Maker.ResizeAll()
@@ -1190,10 +1190,10 @@ class MainPageMaker_no_images:
                                            skiplist=skipnames)
          curpage.Create_Most(bl=True, extlist=self.extlist)
 
-      
+
 if __name__ == '__main__':
    #testpath = '/mnt/personal/pictures/Joshua_Ryan/2009/June_2009/Bowman_visit/'
-   testpath = '/mnt/personal/pictures/Joshua_Ryan/2009/June_2009/'   
+   testpath = '/mnt/personal/pictures/Joshua_Ryan/2009/June_2009/'
    #myresizer = ImageResizer900by600(testpath)
    #myresizer.ResizeAll()
    mp = MainPageMaker2(testpath, screensizedir='900by600', \
@@ -1202,4 +1202,4 @@ if __name__ == '__main__':
                        DirectoryPageclass=DirectoryPage3, \
                        )
    mp.Go()
-   
+

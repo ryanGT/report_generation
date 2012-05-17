@@ -2,7 +2,6 @@ import os, copy, re, shutil
 import pytexutils, txt_mixin
 #reload(txt_mixin)
 
-#from IPython.Debugger import Pdb
 from IPython.core.debugger import Pdb
 
 #secpat = '^s\\**:(.*)'
@@ -34,7 +33,7 @@ class line(object):
             self.bullet = None
             self.string = linein
             self.level = 0
-        
+
 
     def __repr__(self):
         mystr = 'pyp_parser.line object:string='+self.string+ \
@@ -110,7 +109,7 @@ class section(object):
                                                 sublevel=self.sublevel+1)
             for subsec in self.subsections:
                 subsec.parse()
-        
+
 
 
 

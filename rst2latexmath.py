@@ -15,7 +15,7 @@ from docutils import nodes
 from docutils.writers.latex2e import LaTeXTranslator
 from docutils.core import publish_cmdline, default_description
 
-#from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 # Define LaTeX math node:
 class latex_math(nodes.Element):
@@ -52,7 +52,7 @@ else:
     from docutils.parsers.rst import directives
     class latex_math_directive(Directive):
         has_content = True
-        def run(self): 
+        def run(self):
             latex = ''.join(self.content)
             node = latex_math(self.block_text, latex)
             return [node]
@@ -67,10 +67,10 @@ def visit_latex_math(self, node):
         self.body.extend(['\\begin{equation}\\begin{split}',
                           node.latex,
                           '\\end{split}\\end{equation}'])
-        
+
 def depart_latex_math(self, node):
     pass
-    
+
 LaTeXTranslator.visit_latex_math = visit_latex_math
 LaTeXTranslator.depart_latex_math = depart_latex_math
 

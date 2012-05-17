@@ -1,7 +1,7 @@
 import os
 import file_finder
 
-from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 def remove_exts_from_list(listin):
     listout = []
@@ -23,7 +23,7 @@ def find_beamer_lectures(lecture_path):
                                          extlist=['.pdf'], \
                                          skipdirs=['exclude'])
     pdf_files = pdf_finder.Find_All_Files()
-    
+
     rst_list = remove_exts_from_list(rst_files)
     pdf_list = remove_exts_from_list(pdf_files)
     filt_list = [item for item in rst_list if item in pdf_list]
@@ -46,7 +46,7 @@ def make_all_handouts(pathlist):
             os.system(cmd)
     finally:
         os.chdir(curdir)
-        
+
 
 def make_pdf_paths(pnelist):
     """add .pdf to a list of paths with not extensions"""
@@ -59,7 +59,7 @@ def merge_handouts(pathlist, dest_path):
     cmd = 'pdftk_merge.py %s %s' % (path_str, dest_path)
     print(cmd)
     os.system(cmd)
-    
+
 
 def run_one_course(lecture_path, pdf_out_path):
     filt_paths = find_beamer_lectures(lecture_path)
@@ -80,7 +80,7 @@ def filt_482(pathin):
         if pathin.find(item) > -1:
             return False
     return True
-                
+
 
 def run_482_course(lecture_path, pdf_out_path):
     filt_paths = find_beamer_lectures(lecture_path)
@@ -90,7 +90,7 @@ def run_482_course(lecture_path, pdf_out_path):
     merge_handouts(pdflist, pdf_out_path)
     return pdflist
 
-    
+
 if __name__ is '__main__':
     run_592 = 0
     if run_592:

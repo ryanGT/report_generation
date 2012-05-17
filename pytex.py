@@ -129,7 +129,7 @@ import relpath, pdb
 
 import replacelist
 
-from  IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 #import pytexutils
 #reload(pytexutils)
@@ -141,7 +141,7 @@ reload(env_popper)
 import texfilemixin
 
 import sympy
-from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 #import code_hasher
 
 from var_to_latex import *
@@ -152,7 +152,7 @@ def label_match(line):
     q = label_re.search(line)
     return bool(q)
 
-    
+
 def LatexMe(line):
     """Test whether or not a line should be include in the ouput
     LaTeX.  For now, only lines with '=' are considered to have
@@ -208,7 +208,7 @@ class empty_class(object):
         kwargs.update(_d)
         self.__dict__=kwargs
 
-        
+
 class Result:
     """A class for encapsulating the left and right hand side of a
     Python expression."""
@@ -224,7 +224,7 @@ class Result:
         if hasattr(self, 'result'):
             strout += '    result='+str(self.result)+'\n'
         return strout
-    
+
 
     def eval(self):
         self.result = eval(self.string, self.namespace)
@@ -244,7 +244,7 @@ class Result:
     def RHSToLatex(self, **kwargs):
         return NumToLatex(self.result)
 
-    
+
 
 class Evaluated_Result(Result):
     """A class for encapsulating the left and right hand side of a
@@ -285,7 +285,7 @@ class Block:
                 self.lhsdict[n] = lhs(line)
         self.lhslist = self.lhsdict.values()
         return self.lhslist
-                
+
 
     def Execute(self, namespace={}, **kwargs):
         """Run the Block of code using Pythons exec function and
@@ -306,7 +306,7 @@ class Block:
                 resultdict[n] = result
         self.resultdict = resultdict
         return self.resultdict
-        
+
 
     def ToLatex(self, echo=1, **kwargs):
         """Convert the Block to LaTeX.
@@ -365,18 +365,18 @@ class InputFile(Block):
         self.filepath = self.lines[0]
         if os.path.splitext(self.filepath)[1]=='':
             self.filepath = self.filepath+'.tex'
-    
+
     def Execute(self,namespace={},**kwargs):
         #define the replacelist to make a pretty output
         import replacelist,texpy
         replacelist = replacelist.ReplaceList()
         replacelist.ReadFRFile()
-        
+
         #define the file/filepath
         inpath = self.filepath
         fno, ext = os.path.splitext(inpath)
         self.outpath = fno+'_out.tex'
-        
+
         #parse the file and execute the code
         self.tp = texpy.TexPyFile(inpath)
         if not kwargs.has_key('star'):
@@ -419,7 +419,7 @@ class StdoutBlock(Block):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
         err = codeErr.getvalue()     #need to throw an exception if err is
-        result = codeOut.getvalue()  #anything but "". 
+        result = codeOut.getvalue()  #anything but "".
         codeOut.close()
         codeErr.close()
         lines = result.split('\n')
@@ -485,7 +485,7 @@ class FigureBlock(Block):
             exec savestr in namespace
         self.figpath = outname
         return self.resultdict
-    
+
 
     def ToLatex(self, pdf=1, **kwargs):
         #the figure path is a full path by default.  This isn't
@@ -551,7 +551,7 @@ class NoOutBlock(Block):
     def __init__(self, linesin, output=False, comments=False, **kwargs):
         if linesin[0].find('#noout{') > -1:
             linesin = linesin[1:]
-        Block.__init__(self, linesin, output=output, comments=comments, **kwargs)    
+        Block.__init__(self, linesin, output=output, comments=comments, **kwargs)
 
     def Execute(self, namespace={}, **kwargs):
         """Run the Block of code using Pythons exec function and
@@ -638,7 +638,7 @@ class InnerBlock:
             lhsstr = lhs(firstline)
             self.lhslist = lhslist(lhsstr)
             return self.lhslist
-    
+
 
     def Execute(self, namespace={}, **kwargs):
         """Execute self.code in namespace."""
@@ -655,8 +655,8 @@ class InnerBlock:
             result.eval()
             self.resultlist.append(result)
         return self.resultlist
-        
-        
+
+
 
     def ToLatex(self, echo=1, noout=None, replacelist=None, \
                 star=False, **kwargs):
@@ -799,7 +799,7 @@ class PyNoExecuteBlock(InnerBlock):
     def Execute(self, namespace={}, **kwargs):
         self.resultlist = []
         return self.resultlist
-    
+
 
     def FindLHSs(self):
         return []
@@ -832,7 +832,7 @@ class PyAnsCommentBlock(PyNoExecuteBlock):
         else:
             self.noout = True#leave self.latexlist completely empty
         return self.latexlist
-            
+
 
 class PyInLineBlock(InnerBlock):
     def ToLatex(self, **kwargs):#echo=1, noout=None, **kwargs):
@@ -864,7 +864,7 @@ class PyInLineNoExecuteBlock(PyInLineBlock):
         resstr = '\\lstinline!'+firstline+'!'
         self.latexlist = [resstr]
         return resstr
-    
+
 
 class QuestionBlock(PyInLineBlock):
     def __init__(self, codelist, noout=False, **kwargs):
@@ -884,7 +884,7 @@ class QuestionBlock(PyInLineBlock):
         self.code = '\n'.join(self.codelist)
         self.noout = noout
         self.Parse()
-    
+
 
     def ToLatex(self, handout=False, outline=True, count=None, **kwargs):#echo=1, noout=None, **kwargs):
         """Convert the Block to LaTeX.  Return a string $...$"""
@@ -956,7 +956,7 @@ class OuterBlock:
                                       label=label)
                 self.blocks.append(curblock)
                 label = None
-    
+
 
     def Execute(self, namespace={}, **kwargs):
         """Call the Execute methods of all the blocks in self.blocks."""
@@ -964,7 +964,7 @@ class OuterBlock:
             self.FindBlocks()
         for block in self.blocks:
             block.Execute(namespace=namespace, **kwargs)
-        
+
 
     def ToLatex(self, echo=False, replacelist=None, star=False, \
                 **kwargs):
@@ -1004,8 +1004,8 @@ class EchoBlock(OuterBlock):
         else:
             kwargs['replacelist'] = empty_list
         return OuterBlock.ToLatex(self, **kwargs)
-        
-    
+
+
 class AnswerBlock(OuterBlock):
     def __init__(self, linesin, noout=True, **kwargs):
         if linesin[0].find('#answer{') > -1:
@@ -1055,7 +1055,7 @@ class BlockParser:
             vallist = [key]*len(curstarts)
             curdict = dict(zip(curstarts, vallist))
             startdict.update(curdict)
-            
+
         startlist = startdict.keys()
         startlist.sort()
         endlist = linelist.findall('#}', forcestart=1)
@@ -1079,12 +1079,12 @@ class BlockParser:
             blocklist.append(lastblock)
         self.blocklist = blocklist
         return self.blocklist
-            
+
 
 pytex_def_map = {'fig':FigureBlock, 'body':OuterBlock, \
                  'no':NoOutBlock, 'echo':EchoBlock}
 
-        
+
 
 class PythonFile(texfilemixin.TexFileMixin):
     def __init__(self, filepath):
@@ -1103,7 +1103,7 @@ class PythonFile(texfilemixin.TexFileMixin):
         for block in self.blocks:
             block.Execute(namespace=self.namespace, **kwargs)
             #self.resultdict.update(block.resultdict)
-            
+
 
     def ToBlocks(self, blockmap=None):
 ##         self.blockparser = BlockParser(self.rawlist, \
@@ -1142,7 +1142,7 @@ class PythonFile(texfilemixin.TexFileMixin):
             mylatexlist.extend(self.ToListing())
         self.latexlist = mylatexlist
         return self.latexlist
-    
+
 
     def FindLHSs(self):
         self.lhslist = []
@@ -1154,9 +1154,9 @@ class PythonFile(texfilemixin.TexFileMixin):
     def EpstoPdf(self, force=True):
         for block in self.blocks:
             block.EpstoPdf(force=force)
-        
 
-        
+
+
 if __name__ == '__main__':
     #mydir = '/home/ryan/siue/classes/mechatronics/2007/test2'
     #myfile = 'solution.py'

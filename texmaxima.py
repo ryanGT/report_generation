@@ -8,7 +8,7 @@ import re, copy, os, glob, pdb
 
 from rwkmisc import rwkstr
 
-from  IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 #import textfiles
 #reload(textfiles)
@@ -50,7 +50,7 @@ def keepme(item):
 def stripcodelist(codelist):
     """Remove all empty lines, all lines containing \mlabel, and all
     lines containing \parseopts from codelist."""
-    outlist = [item for item in codelist if item]    
+    outlist = [item for item in codelist if item]
     finallist = [item for item in outlist if keepme(item)]
     finallist = FilterComments(finallist)
     return finallist
@@ -62,7 +62,7 @@ def FilterComments(listin):
     listout = [item for item in listin if not compat.match(item)]
     return listout
 
-    
+
 class MaximaLine:
     """Class representing one line of Maxima code extracted from a
     Latex document."""
@@ -101,7 +101,7 @@ class MaximaLine:
         self.saveline = 'tex(%, "'+self.path+'")$'
         return self.saveline
 
-        
+
     def BuildMaximaLines(self):
         if not hasattr(self, 'path'):
             self.BuildFilename()
@@ -168,7 +168,7 @@ class MaximaLine:
     def FindReplacePats(self):
         self.findpats = FindReplacementCandidates(self.rawlatex)
         return self.findpats
-        
+
 
 class MaximaContLine(MaximaLine):
     def __init__(self, line, ind, noout=False, folder='temp_eqs', basename='temp_eq_', label=None, suppressenv=True, suppresslhs=True, **kwargs):
@@ -229,7 +229,7 @@ class MaximaBlock:
                         curlabel = None
                         optdict = {}
         return self.lines
-        
+
 
     def BuildMaximaLines(self):
         if not hasattr(self, 'lines'):
@@ -240,7 +240,7 @@ class MaximaBlock:
             maximaout.extend(curout)
         self.maximalines = maximaout
         return self.maximalines
-    
+
 
     def BuildLatexLines(self, echo=0, replacelist=None, **kwargs):
         self.texlines = []
@@ -257,8 +257,8 @@ class MaximaBlock:
             pats.extend(curpats)
         self.findpats = pats
         return self.findpats
-    
-            
+
+
 class MaximaNoOutBlock(MaximaBlock):
     def __init__(self, listin, startline, noout=True, **kwargs):
         MaximaBlock.__init__(self, listin, startline, noout=noout, **kwargs)
@@ -268,14 +268,14 @@ class MaximaAnswerBlock(MaximaBlock):
     def __init__(self, listin, startline, answer=False, **kwargs):
         print('MaximaAnswerBlock, answer='+str(answer))
         MaximaBlock.__init__(self, listin, startline, noout=not answer, **kwargs)
-        
+
 
 class MaximaAnsCommentBlock(MaximaAnswerBlock):
     def BuildLatexLines(self, answer=False, **kwargs):
         self.texlines = []
         if answer:
             self.texlines = self.list
-        return self.texlines    
+        return self.texlines
 
     def BuildMaximaLines(self):
         self.maximalines = []
@@ -283,12 +283,12 @@ class MaximaAnsCommentBlock(MaximaAnswerBlock):
 
     def FindReplacePats(self):
         return None
-    
-    
+
+
 class MaximaBlockContBlock(MaximaBlock):
     def BuildLines(self, lineclass=MaximaContLine):
         return MaximaBlock.BuildLines(self, lineclass=lineclass)
-    
+
 
     def BuildLatexLines(self, echo=0, replacelist=None, **kwargs):
         self.texlines = ['\\begin{eqnarray}']
@@ -338,7 +338,7 @@ class TexMaximaFile(texpy.TexPyFile):
                 pats.extend(curpats)
         self.findpats = RemoveDuplicates(pats)
         return self.findpats
-    
+
 
     def HasMaxima(self):
         """Check to see if the file actually contains any Python code."""
@@ -348,7 +348,7 @@ class TexMaximaFile(texpy.TexPyFile):
         self.ind = oldind#reset ind
         return bool(mybool)
 
-        
+
     def GetNextEnvNoClear(self):
         """Find the next Maxima environment in self.rawlist, get the
         associated block of code, but leave self.rawlist unmodified."""
@@ -372,7 +372,7 @@ class TexMaximaFile(texpy.TexPyFile):
                 keepgoing = False
             n += 1
         return self.blocks
-            
+
 
     def BuildMaximaScript(self, **kwargs):
         if not hasattr(self, 'blocks'):
@@ -405,8 +405,8 @@ class TexMaximaFile(texpy.TexPyFile):
         myfiles = glob.glob(pat)
         for curfile in myfiles:
             os.remove(curfile)
-        
-        
+
+
     def RunMaxima(self):
         if not hasattr(self, 'scriptname'):
             self.SaveMaximaScript()
@@ -460,7 +460,7 @@ class TexMaximaFile(texpy.TexPyFile):
         pytex.writefile(pathout, wltlines)
         wltfile = wxmlit.wxmLitFile(pathout)
         wltfile.ToWXM()
-        
+
 
 class WLTTranslator(texfilemixin.TexFileMixin):
     """This class exists to translate wxMaxima literate programming
@@ -523,7 +523,7 @@ class WLTTranslator(texfilemixin.TexFileMixin):
             linesout.append('}')
         self.latexlist = linesout
         return self.latexlist
-                
+
 
     def ReadandTranslate(self):
         self.Read()

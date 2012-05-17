@@ -8,7 +8,6 @@ import rwkos, rwkmisc
 
 import relpath
 
-#from IPython.Debugger import Pdb
 from IPython.core.debugger import Pdb
 
 floatre = re.compile(r'[+-]*\d*\.*\d+')
@@ -72,7 +71,7 @@ def RemoveDuplicates(listin):
     for ind in inds:
         outlist.append(otherdict[ind])
     return outlist
-    
+
 
 
 def CleanList(listin):
@@ -105,8 +104,8 @@ def findinlistre(listin, pat):
             found=n
             break
     return found
-    
-    
+
+
 def searchlist(listin,searchstr):
     myind = findinlist(listin, searchstr)
     return bool(myind != -1)
@@ -126,7 +125,7 @@ def splittolist(pathstr):
         listout[:0]=[rest]
     return listout
 
-    
+
 def amiLinux():
     platstr=sys.platform
     platstr=platstr.lower()
@@ -184,7 +183,7 @@ def FindWalkingUp(filename, pathstr=None, includesys=False):
         return fp
     else:
         return None
-    
+
 
 def readfile(pathin, strip=False, rstrip=True, verbosity=0):
     goodpath = None
@@ -199,7 +198,7 @@ def readfile(pathin, strip=False, rstrip=True, verbosity=0):
             mypath=FindinPath(filename)
             if mypath:
                 goodpath = mypath
-            
+
     if goodpath:
         if verbosity > 0:
             print('found file:'+goodpath)
@@ -265,7 +264,7 @@ def filterlhs(lhsin):
         return ''
     return lhsin
 
-    
+
 def lhs(line):
     """Find the left hand side of a line with an equals sign."""
     lineout = line.strip()
@@ -276,7 +275,7 @@ def lhs(line):
     myout = myout.strip()
     myout = filterlhs(myout)
     return myout
-    
+
 
 
 def lhslist(strin):
@@ -437,7 +436,7 @@ def OpenOutput(outputpath, dvi=None, debug=1, kpdf=False):
     else:
         subprocess.Popen(mycmd)
 
-        
+
 
 class MyTokenizer:
     """Class for converting a chunk of Python code to a list of blocks
@@ -457,7 +456,7 @@ class MyTokenizer:
             prevrow = srow
         self.list = listout
         return self.list
-        
+
 
 class MyList:
     def __init__(self, listin):
@@ -500,7 +499,7 @@ class MyList:
                 m=p.search(line)
             if m:
                 linenums.append(x)
-        return linenums  
+        return linenums
 
 
 class MyHasher:
@@ -520,4 +519,4 @@ class MyHasher:
                 prevind = ind
             self.rawblocks.append(self.code[prevind:])
         return self.rawblocks
-            
+

@@ -4,7 +4,7 @@ import rst_math_report
 
 from sage.all import *
 
-from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 
 class sage_report(rst_math_report.report):
@@ -12,7 +12,7 @@ class sage_report(rst_math_report.report):
         rst_math_report.report.__init__(self, *args, **kwargs)
         self.x1, self.x2 = var('x1,x2')
 
-        
+
     def append_one_equation(self, lhs, rhs, \
                             label=None, ws=' '*4):
         if hasattr(rhs, '_latex_'):
@@ -30,8 +30,8 @@ class sage_report(rst_math_report.report):
         Vdot = diff(V,self.x1)*f1 + diff(V,self.x2)*f2
         Vdot_e = Vdot.expand()
         return Vdot_e
-    
-    
+
+
     def report_one_problem(self, V, f1, f2, \
                            title=None, note=None, \
                            only_basic=False, label=None):

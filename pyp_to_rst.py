@@ -2,7 +2,7 @@
 import os, copy, re, shutil
 import pytexutils
 
-from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 import pdb
 
 from pytexutils import break_at_pipes, OptionsDictFromList
@@ -73,7 +73,7 @@ class section_to_level_1(list_regexp_replacer):
             return self.decorator(section)
         else:
             return linein
-    
+
 
 class section_to_section(list_regexp_replacer):
     def __init__(self, pat='^s\\**: *(.*)', **kwargs):
@@ -89,7 +89,7 @@ class section_to_section(list_regexp_replacer):
             return self.decorator(section)
         else:
             return linein
-    
+
 class subsection_to_subsection(section_to_section):
     def __init__(self, pat='^ss\\**: *(.*)', **kwargs):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
@@ -121,7 +121,7 @@ class lstinline(figure_ref):
 class inlineeq(figure_ref):
     def __init__(self, pat=r'(\$.*?\$)', **kwargs):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
-    
+
 class one_asterisk_to_level_2(section_to_level_1):
     def __init__(self, pat='^\* (?:[vf:]*)(.*)', **kwargs):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
@@ -163,7 +163,7 @@ class three_asterisks_to_list_level_3(section_to_level_1):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
         self.decorator = rst_list_level_3()
 
-        
+
 class pyp_to_rst(object):
     def __init__(self, pyppath):
         self.pyp_path = pyppath
@@ -183,7 +183,7 @@ class pyp_to_rst(object):
             pathout = self.rst_path
         pytexutils.writefile(pathout, self.rst_list)
         return pathout
-    
+
 
 img_pat = '(?:fig|image){(.*?)}'
 
@@ -197,8 +197,8 @@ class centered_image(image):
     def __init__(self, pat=img_pat, **kwargs):
         image.__init__(self, pat=pat, **kwargs)
         self.center_dec = center_decorator()
-        
-            
+
+
     def replace_line(self, linein):
         q = self.p.search(linein)
         if q:
@@ -235,8 +235,8 @@ class centered_figure_replacer(centered_image):
             return listout
         else:
             return linein
-        
-        
+
+
 
 class link_decorator(rst_decorator):
     def __call__(self, match):
@@ -253,7 +253,7 @@ class link_decorator2(rst_decorator):
         lineout = '`%s <%s>`_' % (text, target)
         return lineout
 
-    
+
 class link_replacer(list_regexp_replacer):
     def __init__(self, pat='link{(.*?)\|(.*?)}', **kwargs):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
@@ -267,7 +267,7 @@ class link_replacer(list_regexp_replacer):
             return lineout
         else:
             return linein
-    
+
 
 class link_without_text_dec(link_decorator):
     def __call__(self, match):
@@ -275,7 +275,7 @@ class link_without_text_dec(link_decorator):
         lineout = '`%s <%s>`_' % (target, target)
         return lineout
 
-    
+
 class link_replacer_without_text(link_replacer):
     def __init__(self, pat='link{(.*?)}', **kwargs):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
@@ -299,7 +299,7 @@ class lstinline_replacer(link_replacer):
         list_regexp_replacer.__init__(self, pat=pat, **kwargs)
         self.decorator = blue_decorator()
 
-    
+
 rst_s5_header = r""".. -*- mode: rst -*-
 .. include:: <s5defs.txt>
 
@@ -335,7 +335,7 @@ class Beamer_to_rst_paper(pyp_to_rst):
 
             for ind in first_inds:
                 self.rst_list.insert(ind, '')
-        
+
     def convert(self):
         self.fix_nested_lists()
         for converter in self.converters:
@@ -356,8 +356,8 @@ class pyp_doc_to_rst_paper(Beamer_to_rst_paper):
                            figure_ref(), \
                            lstinline(), \
                            inlineeq()]
-        
-        
+
+
 
 class Beamer_to_s5_pres(Beamer_to_rst_paper):
     def __init__(self, pyppath, title=None):
@@ -379,7 +379,7 @@ class Beamer_to_s5_pres(Beamer_to_rst_paper):
     def cmd(self):
         return 'python myrst2s5.py --theme-url="ui/advanced_utf" %s %s' % \
                (self.rst_path, self.html_path)
-        
+
 
     def convert(self):
         Beamer_to_rst_paper.convert(self)
@@ -400,7 +400,7 @@ class Beamer_to_s5_pres(Beamer_to_rst_paper):
             src_path = os.path.join(pythonutil_path, curfile)
             dest_path = os.path.join(self.main_dir, curfile)
             shutil.copy2(src_path, dest_path)
-            
+
         ui_path = os.path.join(pythonutil_path, 'ui')
         ui_dest = os.path.join(self.main_dir, 'ui')
         if not os.path.exists(ui_dest):
@@ -416,7 +416,7 @@ class Beamer_to_s5_pres(Beamer_to_rst_paper):
         os.system(cmd)
         os.chdir(curdir)
 
-        
+
 # How should this work?
 #
 # basicaly, I am tryping to map using regexps from my pyp to valid rst
@@ -482,13 +482,13 @@ if __name__ == '__main__':
 
     secstr = options.sections
     pathout = options.output
-    
+
     import rwkos
     #mydir = rwkos.FindFullPath('siue/Research/papers/SciPy2008')
     #myfile = 'presentation_SciPy_2008_v2.pyp'
     #mypath = os.path.join(mydir, myfile)
     #mypyp = Beamer_to_rst_paper(mypath)
-    
+
     #mydir = rwkos.FindFullPath('siue/classes/mechatronics/2008/python_intro')
     #myfile = 'python_intro.pyp'
     #mydir = rwkos.FindFullPath('siue/classes/mechatronics/2009/lectures/10_28_09/')

@@ -2,7 +2,6 @@ import os, copy, re, shutil
 import pytexutils, txt_mixin, pyp_parser
 #reload(pyp_parser)
 
-#from IPython.Debugger import Pdb
 from IPython.core.debugger import Pdb
 import pdb
 
@@ -39,7 +38,7 @@ class Beamer_Figure(object):
         if self.center:
             outlist.append('\\end{center}')
         return outlist
-        
+
 
 class Two_Cols(object):
     def __init__(self, twocols_popper):
@@ -54,8 +53,8 @@ class Two_Cols(object):
             outlist.extend(col.to_latex())
         outlist.append('\\end{columns}')
         return outlist
-            
-        
+
+
 
 class Floating_Figure(object):
     def __init__(self, pyp_figure):
@@ -209,7 +208,7 @@ def _section_to_latex(section):
             body_lines = [item.rawline for item in section.body]#<-- this is bad
             outlist.extend(body_lines)
     return outlist
-    
+
 
 def lines_to_latex(linelist, baselevel=0, startstr='\\begin{itemize}'):
     """Convert a list of pyp_parser.lines into latex code, accounting
@@ -285,14 +284,14 @@ class pyp_to_other(txt_mixin.txt_file_with_list):
         return outsections
 
 
-    
+
 
 vf_pat = '([vf]+):(.*)'
 vf_re = re.compile(vf_pat)
 
 
-                       
-    
+
+
 class slide(object):
     def parse_title(self):
         self.verb = False
@@ -314,14 +313,14 @@ class slide(object):
             self.title = raw_title.strip()
         return self.title
 
-        
+
     def __init__(self, slidein):
         self.raw_title = slidein.title
         self.body_lines = slidein.body_lines
         self.objlist = slidein.body_parser.objlist
         self.slidein = slidein
         self.parse_title()
-        
+
 
     def to_latex(self, baselevel=1):
         reveal = self.reveal
@@ -362,35 +361,35 @@ class slide(object):
 ##                 if item.level >=2:
 ##                     outlist.append(cur_ws+'\\item '+item.string)
 ##                 prev_level = item.level
-                
+
 ##             #close any open itemize's:
 ##             if prev_level != 0:
 ##                 num_to_close = prev_level-1
 ##                 for n in range(num_to_close):
 ##                     cur_ws = (num_to_close-n)*ws
 ##                     outlist.append(cur_ws+'\\end{itemize}')
-                
+
         outlist.append('\\end{frame}')
         outlist.extend(['']*2)
         return outlist
 
 
-    
+
 class pyp_to_presentation(pyp_to_other):
     def __init__(self, pathin, parser_class=pyp_parser.pyp_presentation):
         pyp_to_other.__init__(self, pathin, parser_class=parser_class)
-        
+
 
 
 class pyp_to_Beamer(pyp_to_presentation):
     def to_latex(self, myfunc=section_to_Beamer, sections=None):
         return pyp_to_presentation.to_latex(self, myfunc=myfunc, sections=sections)
-        
+
 
     def get_slide(self, index):
         return self.parser.get_slide(index)
-    
-        
+
+
 class Latex_document(txt_mixin.txt_file_with_list):
     def __init__(self, pathin, converter_class=pyp_to_other, pathout=None):
         txt_mixin.txt_file_with_list.__init__(self, pathin=None)#temporarily override pathin so that the parent __init__ doesn't read in the file
@@ -407,7 +406,7 @@ class Latex_document(txt_mixin.txt_file_with_list):
             path_no_ext, ext = os.path.splitext(pathin)
             self.pathout = path_no_ext+'.tex'
 
-        
+
     def add_header(self, headername='header.tex',\
                    headerinserts=[]):
         header = []
@@ -445,11 +444,11 @@ class Latex_document(txt_mixin.txt_file_with_list):
                "you can append to the header."
         if not self.header.findnext(pat):
             self.append_to_header(line)
-        
+
 
     def require_package(self, packagename):
         self.conditional_header_append('\\usepackage{%s}' % packagename)
-        
+
 
     def to_latex(self, sections=None, add_header=True, **kwargs):
         if not hasattr(self, 'header') and add_header:
@@ -462,7 +461,7 @@ class Latex_document(txt_mixin.txt_file_with_list):
             lines = [lines]
         self.latex_body[0:0] = lines
 
-        
+
     def save(self):
         if not hasattr(self, 'latex_body'):
             self.to_latex()
@@ -501,7 +500,7 @@ class Beamer_pres(Latex_document):
 
     def get_slide(self, index):
         return self.converter.get_slide(index)
-    
+
 
     def add_header(self, headername='beamerheader_v2.tex',\
                    headerinserts=[]):
@@ -541,7 +540,7 @@ class Beamer_pres(Latex_document):
                 cur_latex = cur_slide.to_latex()
                 self.latex_body.extend(cur_latex)
                 self.latex_body.extend(['\n']*2)
-        
+
 
 if __name__ == '__main__':
     import rwkos

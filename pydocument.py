@@ -11,7 +11,7 @@ import txt_mixin
 #import textfiles.htmllist
 #reload(textfiles.htmllist)
 
-from  IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 import pdb
 
@@ -156,7 +156,7 @@ class Document(txt_mixin.txt_file_with_list):
                 skeleton.append('')
         self.skeleton = txt_mixin.txt_file_with_list()
         self.skeleton.list = skeleton
-        
+
 
 
     def AddHeader(self):
@@ -167,7 +167,7 @@ class Document(txt_mixin.txt_file_with_list):
     def HeaderInsert(self, listin):
         self.latexlist.HeaderInsert(listin)
 
-        
+
     def SkelToFile(self, filename):
         self.skeleton.filename = filename
         self.skeleton.tofile(filename)
@@ -253,13 +253,13 @@ def CloseAll(openlist, indent=' '*4):
     for item in openlist:
         listout.append(indent*(item.level-1)+item.CloseStr())
     return listout
-        
+
 
 def OutlineToLatexOutline(filepath, runlatex=0, dvi=1, myoutline=None, nobody=False, appendout=False, headerinsert=[]):
     if myoutline is None:
         myoutline = Document()
     myoutline.ReadFile(filepath)
-        
+
     myoutline.FindNestLevels(nobody=nobody)
 
     myoutline.ToLatex()

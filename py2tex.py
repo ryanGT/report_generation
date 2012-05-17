@@ -9,7 +9,7 @@ import pyp_to_rst, rwkos
 
 import sys
 
-#from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 usage = 'usage: %prog [options] inputfile.py'
 parser = OptionParser(usage)
@@ -46,7 +46,7 @@ curdir = os.getcwd()
 print('curdir='+curdir)
 if curdir not in sys.path:
     sys.path.append(curdir)
-    
+
 py_path = rwkos.FindFullPath(args[0])
 
 raw = 0
@@ -73,14 +73,14 @@ mypy.To_PYP(usetex=True, echo=echo, full_echo=echo,replacelist=replacelist)
 if raw:
     mypy.clean_comments()
     mypy.writefile(clean_path, listin=mypy.clean_lines)
-    
+
 if title:
     mypy.pyp_list.insert(0, '\\textbf{\\Large %s}' % title)
 
 append_show = 0
 if append_show:
     mypy.pyp_list.append('code{show()}')
-    
+
 pyp_path = mypy.save()
 
 if options.nohead:
@@ -95,7 +95,7 @@ os.system(cmd)
 #findlist.extend(tp.FindLHSs())
 #replacelist.AppendFRFile(findlist)
 if options.clean_output:
-    os.unlink(pyp_path)    
+    os.unlink(pyp_path)
 
 #append any new potential replacements
 findlist=[]
