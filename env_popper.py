@@ -7,7 +7,8 @@ import pylab_util as PU
 from pyp_basics import line, section
 from pytexutils import break_at_pipes, OptionsDictFromList
 
-from IPython.Debugger import Pdb
+#from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 import pdb
 
 def CountCurlies(strin):

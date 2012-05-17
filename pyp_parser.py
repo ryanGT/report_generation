@@ -2,7 +2,8 @@ import os, copy, re, shutil
 import pytexutils, txt_mixin
 #reload(txt_mixin)
 
-from IPython.Debugger import Pdb
+#from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 import pdb
 
 import env_popper

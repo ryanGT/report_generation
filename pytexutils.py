@@ -8,7 +8,8 @@ import rwkos, rwkmisc
 
 import relpath
 
-from IPython.Debugger import Pdb
+#from IPython.Debugger import Pdb
+from IPython.core.debugger import Pdb
 
 floatre = re.compile(r'[+-]*\d*\.*\d+')
 
