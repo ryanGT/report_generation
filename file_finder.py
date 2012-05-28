@@ -2,6 +2,14 @@ import os, glob, time, md5sum, pdb
 import rwkos
 
 def dont_fitler_me(pathin, skipnames):
+    ## junk, test = os.path.split(pathin)
+    ## if test == 'fix_underlines.py':
+    ##     pdb.set_trace()
+        
+    if pathin in skipnames:
+        #fitler first for fullpaths
+        return False
+    #check for filename only matches
     folder, filename = os.path.split(pathin)
     return bool(filename not in skipnames)
 
@@ -53,8 +61,19 @@ def search_for_files_in_folder_v2(pathin, extlist=None, skiplist=[]):
     if type(extlist) == str:
         extlist = [extlist]
     temp_files = find_all_files_in_folder(pathin)
+    if pathin[-1] == '/':
+        pathin = pathin[0:-1]
+    ## if pathin == '/home/ryan/siue/classes/454/2012/lectures/05_22_12':
+    ##     #pdb.set_trace()
+    ##     print('')
+    ##     print('------------------------')
+    ##     print('pathin = ' + pathin)
+    ##     print('in search_for_files_in_folder_v2, skiplist=' + str(skiplist))
+        
     all_files = [item for item in temp_files if \
                  dont_fitler_me(item, skiplist)]
+
+        
     if not extlist:
         all_files.sort()
         return all_files
@@ -64,6 +83,16 @@ def search_for_files_in_folder_v2(pathin, extlist=None, skiplist=[]):
         fno, ext = os.path.splitext(curfile)
         if ext.lower() in extlist:
             filelist.append(curfile)
+
+    ## if pathin == '/home/ryan/siue/classes/454/2012/lectures/05_22_12':
+    ##     #pdb.set_trace()
+    ##     print('+++++')
+    ##     print('extlist = ' + str(extlist))
+    ##     print('filelist = ')
+    ##     for item in filelist:
+    ##         print(str(item))
+    ##     print('+++++')
+        
     return filelist
 
 
@@ -124,7 +153,8 @@ class File_Finder(object):
        if extlist is None:
            extlist = self.extlist
        self.top_level_files = search_for_files_in_folder_v2(self.folder, \
-                                                            extlist)
+                                                            extlist, \
+                                                            skiplist=self.skiplist)
        return self.top_level_files
 
 

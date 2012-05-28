@@ -322,6 +322,7 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
     will contain only one line.
 
     env may be either 'equation' or 'eqnarray'."""
+    print('hello from VariableToLatex')
     if debug:
         print('mylhs=%s' % mylhs)
         print('myvar=%s' % myvar)

@@ -13,7 +13,7 @@ from rst_creator import rst2html_fullpath
 import copy
 skipfolders = ['html','thumbnails','blog_size','resized', \
                '.comments','900by600','cache','screensize', \
-               'exclude']
+               'exclude','auto']
 
 skipnames = ['index.html','outline.pdf','outline1.png', 'reminders1.png', \
              'announcements1.png','reminders.pdf','announcements.pdf', \
@@ -592,9 +592,11 @@ class ThumbNailPage(Image_Finder):
                 extlist=jpgextlist, contentlist=[], \
                 HTMLclass=HTMLImage, skipdirs=myskipdirs, \
                 screensizedir='screensize', \
+                skiplist=[], \
                 bodyin=[], **kwargs):
       Image_Finder.__init__(self, folder, extlist=extlist, \
-                            skipdirs=skipdirs, **kwargs)
+                            skipdirs=skipdirs, skiplist=skiplist, \
+                            **kwargs)
       self.folder = folder
       self.header = thumbheader.replace('%TITLE%', str(title))
       self.extlist = extlist
@@ -833,7 +835,7 @@ class DirectoryPage(ThumbNailPage):
       pdf) in folder and create links to them."""
       other_files = self.Find_Files_in_One_Subfolder(folder, \
                                                      extlist=extlist, \
-                                                     skiplist=['index.html'])
+                                                     skiplist=self.skiplist+['index.html'])
       other_files.sort()
       if other_files:
          self.body.append('<ul>')
@@ -1061,7 +1063,9 @@ class MainPageMaker2:
                 screensizesize=(875,700), \
                 thumbsize=(400, 300), \
                 HTMLclass=HTMLImage2, \
+                skiplist=[], \
                 DirectoryPageclass=DirectoryPage):
+      self.skiplist = skiplist + skipnames
       self.title = title
       self.mainfolder = folder
       self.screensizesize = screensizesize
@@ -1075,17 +1079,17 @@ class MainPageMaker2:
                                                     resizefolder=screensizedir,\
                                                     size=screensizesize, \
                                                     extlist=imageextlist, \
-                                                    skiplist=skipnames)
+                                                    skiplist=self.skiplist)
       self.Screen_Size_Maker.Find_All_Images()
-      print('Screen_Size_Maker.imagepaths=')
-      for item in self.Screen_Size_Maker.allimagepaths:
-         print item
+      ## print('Screen_Size_Maker.imagepaths=')
+      ## for item in self.Screen_Size_Maker.allimagepaths:
+      ##    print item
 
       self.Thumbnail_Maker = ImageResizerDir(folder, \
                                              resizefolder=thumbdir,\
                                              size=thumbsize, \
                                              extlist=imageextlist,
-                                             skiplist=skipnames)
+                                             skiplist=self.skiplist)
 
 
    def hascontent(self, folder, extlist=None):
@@ -1107,7 +1111,11 @@ class MainPageMaker2:
                                              HTMLclass=self.HTMLclass, \
                                              title = self.title, \
                                              screensizedir=self.screensizedir, \
-                                             skiplist=skipnames)
+                                             skiplist=self.skiplist)
+      print('\n'*3)
+      print('after self.mainpage creation')
+      print('self.mainfolder = ' + self.mainfolder)
+      print('\n'*3)
       self.mainpage.Create_Most(extlist=self.extlist)
       for root, dirs, files in os.walk(self.mainfolder):
          if (not root==self.mainfolder) and \
@@ -1134,7 +1142,9 @@ class MainPageMaker2:
                                               bodyin=bodyin, \
                                               title=title, \
                                               screensizedir=self.screensizedir, \
-                                              skiplist=skipnames)
+                                              skiplist=self.skiplist)
+            ## if root == '/home/ryan/siue/classes/454/2012/lectures/05_22_12':
+            ##    pdb.set_trace()
             if toplevel:
                if top_level_link is not None:
                   curpage.Create_Most(bl=True, \
@@ -1155,7 +1165,9 @@ class MainPageMaker_no_images:
    files are also acceptable)."""
    def __init__(self, folder, title=None, body=None, \
                 extlist=['.html','.py','.pdf','.m'], \
+                skiplist=[], \
                 DirectoryPageclass=DirectoryPage_no_images):
+      self.skiplist = skiplist + skipnames
       self.title = title
       self.mainfolder = folder
       self.extlist = extlist
@@ -1166,7 +1178,7 @@ class MainPageMaker_no_images:
                                               extlist=self.extlist, \
                                               contentlist=self.extlist, \
                                               title = self.title, \
-                                              skiplist=skipnames)
+                                              skiplist=self.skiplist)
       for root, dirs, files in os.walk(self.mainfolder):
          print('root='+root)
          #print('mainfolder='+self.mainfolder)
@@ -1187,7 +1199,7 @@ class MainPageMaker_no_images:
                                            contentlist=self.extlist, \
                                            bodyin=bodyin, \
                                            title=title, \
-                                           skiplist=skipnames)
+                                           skiplist=self.skiplist)
          curpage.Create_Most(bl=True, extlist=self.extlist)
 
 
