@@ -9,7 +9,7 @@ from scipy import *
 import txt_mixin
 from pytexutils import RunLatex
 
-from IPython.core.debugger import Pdb
+#from IPython.core.debugger import Pdb
 
 import os, re, shutil, glob, pdb
 

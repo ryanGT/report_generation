@@ -1,6 +1,6 @@
 import Image, os, glob, pdb, shutil
 
-from IPython.core.debugger import Pdb
+#from IPython.core.debugger import Pdb
 from numpy import mod
 import file_finder
 reload(file_finder)

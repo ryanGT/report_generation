@@ -1,6 +1,6 @@
 import txt_mixin
 
-from IPython.core.debugger import Pdb
+#from IPython.core.debugger import Pdb
 
 class rst_file(txt_mixin.txt_file_with_list):
     def filter_dec(self, ind, dec='==='):

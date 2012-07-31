@@ -2,7 +2,7 @@
 import os, copy, re, shutil
 import pytexutils
 
-from IPython.core.debugger import Pdb
+#from IPython.core.debugger import Pdb
 import pdb
 
 from pytexutils import break_at_pipes, OptionsDictFromList

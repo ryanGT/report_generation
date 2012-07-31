@@ -10,7 +10,7 @@ try:
 except:
     quantities_imported = False
 
-from IPython.core.debugger import Pdb
+#from IPython.core.debugger import Pdb
 import pdb
 s = sympy.var('s')
 

@@ -6,7 +6,7 @@ import rwkos
 
 import txt_mixin
 
-from IPython.core.debugger import Pdb
+#from IPython.core.debugger import Pdb
 
 reload(pyp_to_rst)
 
