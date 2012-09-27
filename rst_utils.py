@@ -55,6 +55,9 @@ class rst_file(txt_mixin.txt_file_with_list):
         #Do I want to make this check that the current contents of the
         #section are empty?
         old_contents = self.get_section_contents(title, dec=dec)
+        if old_contents is None:
+            print('Cannot find section with title %s. Doing nothing.' % title) 
+            return
         filt_old = filter(None, old_contents)
         if not force:
             if len(filt_old) > 0:

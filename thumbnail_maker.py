@@ -128,10 +128,11 @@ def dont_skip_me(pathin):
 def pictsindir(folder, exts=['*.jpg']):
    """Find all the pictures in folder, not looking in subfolders, but
    checking for the upper and lower cases versions of exts."""
-   #pdb.set_trace()
    picts = []
    for pat in exts:
-      if pat[0] == '.':
+      if pat[0] != '*':
+         if pat[0] != '.':
+            pat = '.' + pat
          pat = '*'+pat
       curfiles = glob.glob(os.path.join(folder, pat.lower()))
       list2 = glob.glob(os.path.join(folder, pat.upper()))
@@ -741,6 +742,15 @@ class ThumbNailPage_from_imagelist(ThumbNailPage):
 
 
 class DirectoryPage(ThumbNailPage):
+   def __init__(self, *args, **kwargs):
+      if kwargs.has_key('lecture_pat'):
+         lecture_pat = kwargs.pop('lecture_pat')
+      else:
+         lecture_pat = 'ME*_%0.4i'
+      ThumbNailPage.__init__(self, *args, **kwargs)
+      self.lecture_pat = lecture_pat
+
+      
    def FindSubFolders(self):
       pat = os.path.join(self.folder,'*')
       everything = glob.glob(pat)
@@ -812,7 +822,7 @@ class DirectoryPage(ThumbNailPage):
 
    def Find_Lecture_Slide_in_Subfolder(self, folder, slidenum=1,
                                        extlist=['.png','.jpg']):
-      pat = 'ME*_%0.4i' % slidenum
+      pat = self.lecture_pat % slidenum
       fullfolderpath = os.path.join(self.folder, folder)
       relpat = os.path.join(fullfolderpath, pat)
       for ext in extlist:
@@ -1035,7 +1045,6 @@ class MainPageMaker:
       for root, dirs, files in os.walk(self.mainfolder):
          if (not inskipfolders(root)) and (haspicts(root)):
             print('root='+root)
-            #Pdb().set_trace()
             curpage = DirectoryPage(root)
             curpage.FullCreate()
 
@@ -1064,7 +1073,8 @@ class MainPageMaker2:
                 thumbsize=(400, 300), \
                 HTMLclass=HTMLImage2, \
                 skiplist=[], \
-                DirectoryPageclass=DirectoryPage):
+                DirectoryPageclass=DirectoryPage, \
+                lecture_pat='ME*_%0.4i'):
       self.skiplist = skiplist + skipnames
       self.title = title
       self.mainfolder = folder
@@ -1075,6 +1085,7 @@ class MainPageMaker2:
       self.allcontentlist = extlist + imageextlist + ['.rst']
       self.HTMLclass = HTMLclass
       self.DirectoryPageclass = DirectoryPageclass
+      self.lecture_pat = lecture_pat      
       self.Screen_Size_Maker = ImageResizer900by600(folder, \
                                                     resizefolder=screensizedir,\
                                                     size=screensizesize, \
@@ -1111,7 +1122,8 @@ class MainPageMaker2:
                                              HTMLclass=self.HTMLclass, \
                                              title = self.title, \
                                              screensizedir=self.screensizedir, \
-                                             skiplist=self.skiplist)
+                                             skiplist=self.skiplist, \
+                                             lecture_pat=self.lecture_pat)
       print('\n'*3)
       print('after self.mainpage creation')
       print('self.mainfolder = ' + self.mainfolder)
@@ -1142,7 +1154,8 @@ class MainPageMaker2:
                                               bodyin=bodyin, \
                                               title=title, \
                                               screensizedir=self.screensizedir, \
-                                              skiplist=self.skiplist)
+                                              skiplist=self.skiplist, \
+                                              lecture_pat=self.lecture_pat)
             ## if root == '/home/ryan/siue/classes/454/2012/lectures/05_22_12':
             ##    pdb.set_trace()
             if toplevel:
@@ -1166,19 +1179,22 @@ class MainPageMaker_no_images:
    def __init__(self, folder, title=None, body=None, \
                 extlist=['.html','.py','.pdf','.m'], \
                 skiplist=[], \
-                DirectoryPageclass=DirectoryPage_no_images):
+                DirectoryPageclass=DirectoryPage_no_images, \
+                lecture_pat='ME*_%0.4i'):
       self.skiplist = skiplist + skipnames
       self.title = title
       self.mainfolder = folder
       self.extlist = extlist
       self.DirectoryPageclass = DirectoryPageclass
+      self.lecture_pat = lecture_pat
 
    def Go(self, toplevel_html_list=[], top_level_link=None):
       self.mainpage = self.DirectoryPageclass(self.mainfolder, \
                                               extlist=self.extlist, \
                                               contentlist=self.extlist, \
                                               title = self.title, \
-                                              skiplist=self.skiplist)
+                                              skiplist=self.skiplist, \
+                                              lecture_pat=self.lecture_pat)
       for root, dirs, files in os.walk(self.mainfolder):
          print('root='+root)
          #print('mainfolder='+self.mainfolder)
@@ -1199,7 +1215,8 @@ class MainPageMaker_no_images:
                                            contentlist=self.extlist, \
                                            bodyin=bodyin, \
                                            title=title, \
-                                           skiplist=self.skiplist)
+                                           skiplist=self.skiplist, \
+                                           lecture_pat=self.lecture_pat)
          curpage.Create_Most(bl=True, extlist=self.extlist)
 
 
