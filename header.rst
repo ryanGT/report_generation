@@ -29,6 +29,8 @@
     \newcommand{\sat}{\textrm{sat}}
     \newcommand{\sign}{\textrm{sign}}
     \newcommand{\sgn}{\textrm{sgn}}
+    \newcommand{\inlinegraphic}[2]{\begin{center}\includegraphics[width=#1]{#2}\end{center}}
+
 
 
 
