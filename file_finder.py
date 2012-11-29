@@ -95,6 +95,11 @@ def search_for_files_in_folder_v2(pathin, extlist=None, skiplist=[]):
         
     return filelist
 
+def search_for_pat_in_folder(pat, pathin, extlist=None, skiplist=[]):
+    all_files = search_for_files_in_folder_v2(pathin, extlist=extlist, skiplist=skiplist)
+    matching_items = [item for item in all_files if item.find(pat) > -1]
+    return matching_items
+
 
 def Search_for_images_in_folder(pathin, extlist=['.jpg','.jpeg'], \
                                 skiplist=[]):
@@ -229,6 +234,15 @@ class Image_Finder(File_Finder):
                                                      extlist=self.extlist, \
                                                      skiplist=self.skiplist)
        return self.imagepaths
+
+
+    def Find_Images_mathcing_pat(self, pat):
+       if not hasattr(self, 'allimagepaths') or self.allimagepaths==[]:
+           self.Find_All_Images()
+       matching_items = [item for item in self.allimagepaths if item.find(pat) > -1]
+       self.matching_images = matching_items
+       return self.matching_images
+
        
 
     def FindAllPictureFolders(self):
