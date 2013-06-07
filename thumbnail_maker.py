@@ -1,5 +1,5 @@
-import Image, os, glob, pdb, shutil
-
+import os, glob, pdb, shutil
+from PIL import Image
 #from IPython.core.debugger import Pdb
 from numpy import mod
 import file_finder
@@ -915,6 +915,7 @@ class DirectoryPage(ThumbNailPage):
       self.FindImages()
       self.GenerateHTMLs()
       self.AddThumbNailTable()
+      self.Add_Other_Links(['.m4v','.mov'], "Videos:")
       self.Add_Other_Links(['.py'], "Python Files:")
       self.Add_Other_Links(['.m'], "Matlab Files:")
       self.Add_Other_Links(['.pdf'], "PDF Files:")
@@ -960,12 +961,14 @@ link_dict = {'.py':'Python Files', \
              '.txt':'TXT Data Files',\
              '.zip':'ZIP Archives', \
              '.tex':'LaTeX Files', \
-             '.pkl':'Pickle Files'}
+             '.pkl':'Pickle Files', \
+             '.mov':'Movie Files', \
+             '.m4v':'Movie Files'}
 
 
 class DirectoryPage_no_images(DirectoryPage_courses):
    def Create_Most(self, bl=True, bl_dest=None, \
-                   extlist=['html','pdf','py','m'],\
+                   extlist=['html','m4v','mov','pdf','py','m'],\
                    add_up_link=True):
       index_rst = self.find_top_level_index_rst()
       clean_ext_list = []

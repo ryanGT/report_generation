@@ -159,7 +159,9 @@ class rst_file(txt_mixin.txt_file_with_list):
 
 
     def add_header(self):
-        mylist = ['.. include:: /home/ryan/git/report_generation/header.rst' , \
+        headerpath = rwkos.FindFullPath('git/report_generation/header.rst')
+        line1 = '.. include:: %s' % headerpath
+        mylist = [line1, \
                   '']
         self.list.extend(mylist)
 
@@ -244,7 +246,9 @@ class rst_file(txt_mixin.txt_file_with_list):
 
 class beamer_file(rst_file):
     def add_header(self):
-        mylist = ['.. include:: /home/ryan/git/report_generation/beamer_header.rst' , \
+        headerpath = rwkos.FindFullPath('git/report_generation/beamer_header.rst')
+        line1 = '.. include:: %s' % headerpath
+        mylist = [line1, \
                   '']
         self.list.extend(mylist)
         
@@ -299,14 +303,18 @@ def _add_if_needed(pathin, pat, list_to_insert, ind=0):
 
 def add_header(pathin):
     pat = r'\.\. include:: .*header\.rst'
-    mylist = ['.. include:: /home/ryan/git/report_generation/header.rst' , \
+    headerpath = rwkos.FindFullPath('git/report_generation/header.rst')
+    line1 = '.. include:: %s' % headerpath
+    mylist = [line1, \
               '']
     _add_if_needed(pathin, pat, mylist)
 
 
 def add_beamer_header(pathin):
     pat = r'\.\. include:: .*beamer_header\.rst'
-    mylist = ['.. include:: /home/ryan/git/report_generation/beamer_header.rst' , \
+    headerpath = rwkos.FindFullPath('git/report_generation/beamer_header.rst')
+    line1 = '.. include:: %s' % headerpath
+    mylist = [line1, \
               '']
     _add_if_needed(pathin, pat, mylist)
 
