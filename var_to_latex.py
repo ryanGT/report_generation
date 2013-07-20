@@ -10,7 +10,7 @@ try:
 except:
     quantities_imported = False
 
-#from IPython.core.debugger import Pdb
+from IPython.core.debugger import Pdb
 import pdb
 s = sympy.var('s')
 
@@ -231,7 +231,7 @@ def _ArrayToLaTex(arrayin, fmt='%0.4g'):
         outlist = []
         first = 1
         for row in arrayin.tolist():
-            currow = RowToLatex(row)
+            currow = RowToLatex(row,fmt=fmt)
             if first:
                 first = 0
             else:
@@ -284,7 +284,7 @@ def is_sympy(myvar):
 ##     typestr = str(type(myvar))
 ##     ind = typestr.find('sympy.')
 ##     out = bool( ind >- 1 )
-    out = isinstance(myvar, sympy.core.basic.Basic)
+    out = isinstance(myvar, sympy.core.BasicType)
     return out
 
 
@@ -309,7 +309,7 @@ def is_quantity(myvar):
 
 def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
                     fmt='%0.4f', eps=1.0e-12, replacelist=None, \
-                    debug=1, **kwargs):
+                    debug=0, **kwargs):
     """Convert variable myvar to LaTeX by checking whether
     or not it is a scalar.
 
@@ -322,7 +322,6 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
     will contain only one line.
 
     env may be either 'equation' or 'eqnarray'."""
-    print('hello from VariableToLatex')
     if debug:
         print('mylhs=%s' % mylhs)
         print('myvar=%s' % myvar)
@@ -349,7 +348,7 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         #outlist = [mylhs +' = '+str(myvar)]
         env = 'equation'
     elif isinstance(myvar, poly1d):
-        rhs, env = ArrayToLaTex(myvar.coeffs, mylhs, ams=ams)
+        rhs, env = ArrayToLaTex(myvar.coeffs, mylhs, ams=ams, fmt=fmt)
 
     elif isscalar(myvar):
         rhs = NumToLatex(myvar,fmt=fmt)
