@@ -14,7 +14,7 @@ def csv_header(headerpath=None, \
         if os.path.exists('header.tex'):
             headerpath = 'header.tex'
         else:
-            headerpath = '/home/ryan/git/report_generation/class_list_header.tex'
+            headerpath = '/Users/rkrauss/git/report_generation/class_list_header.tex'
             
     headerline = '\\input{%s}' % headerpath
     latex_out = [headerline]
