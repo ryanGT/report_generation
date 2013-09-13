@@ -553,7 +553,13 @@ class ImageResizerDir(Image_Finder):
       existing = Search_for_images_in_folder(self.resizepath)
       allnames = [os.path.split(item)[1] for item in self.imagepaths]
       existingnames = [os.path.split(item)[1] for item in existing]
-      self.newjpegnames = [item for item in allnames if item not in existingnames]
+      allnames_lower = [item.lower() for item in allnames]
+      existing_lower = [item.lower() for item in existingnames]
+      newnames = []
+      for unmod, a_lower in zip(allnames, allnames_lower):
+         if a_lower not in existing_lower:
+            newnames.append(unmod)
+      self.newjpegnames = newnames
       self.newjpegs = [os.path.join(self.folder, item) for item in self.newjpegnames]
       return self.newjpegs
 
@@ -580,6 +586,14 @@ class ImageResizer900by600(ImageResizerDir):
 class ImageResizerDVD(ImageResizerDir):
    def __init__(self, topdir, resizeclass=DVDImage, \
                 resizefolder='DVD_size', size=[720,480], \
+                extlist=jpgextlist, **kwargs):
+      ImageResizerDir.__init__(self, topdir, resizeclass=resizeclass, \
+                               resizefolder=resizefolder, size=size, \
+                               extlist=extlist, **kwargs)
+
+class ImageResizer_720p(ImageResizerDir):
+   def __init__(self, topdir, resizeclass=DVDImage, \
+                resizefolder='720p', size=[1024,768], \
                 extlist=jpgextlist, **kwargs):
       ImageResizerDir.__init__(self, topdir, resizeclass=resizeclass, \
                                resizefolder=resizefolder, size=size, \

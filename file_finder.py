@@ -201,7 +201,7 @@ class course_website_archiver(File_Finder):
         
     
 multi_media_exts = ['jpg','jpeg','avi','mov','mpeg','mpg', \
-                    'gif','xcf','png','nef','cr2']#cr2 is the Cannon raw ext
+                    'gif','xcf','png','nef','cr2','mp4']#cr2 is the Cannon raw ext
 
 
 class Multi_Media_Finder(File_Finder):
@@ -209,7 +209,17 @@ class Multi_Media_Finder(File_Finder):
                  skipdirs=['.comments']):
         File_Finder.__init__(self, folderpath, extlist=extlist, \
                              skipdirs=skipdirs)
-                             
+
+
+movie_exts = ['mov','avi','mpeg','mpg','mp4']
+
+
+class Movie_Finder(File_Finder):
+    def __init__(self, folderpath, extlist=movie_exts, \
+                 skipdirs=['.comments']):
+        File_Finder.__init__(self, folderpath, extlist=extlist, \
+                             skipdirs=skipdirs)
+
 
 def is_thumb_dir(pathin):
     rest, folder = os.path.split(pathin)
