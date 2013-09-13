@@ -21,7 +21,7 @@
     \newcommand*{\docutilsrolelabel}{\label}
     \newcommand*{\docutilsroleinline}[1]{\lstinline!#1!}
     \newcommand{\mytitle}[1]{\textbf{\flushleft \Large #1}}
-    \input{/home/ryan/git/report_generation/my452defs}
+    \input{/Users/rkrauss/git/report_generation/my452defs}
 
 
 
