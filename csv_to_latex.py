@@ -81,7 +81,10 @@ def csv_to_latex_table(csvlist, labels=None, extra_col_labels=None, \
 
     for i, row in enumerate(csvlist):
         if type(row) == str:
-            row = row.split(delim)
+            if delim is None:
+                row = [row]
+            else:
+                row = row.split(delim)
         if (i % 2) == 0:
             out('\\rowcolor[gray]{0.9}')
         curlist = row
