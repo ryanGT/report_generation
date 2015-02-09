@@ -65,13 +65,18 @@ if rep_path:
     replace_list.extend(replace_list1)
 
 
-def _replace_latex(latex):
-    print('latex (in) = ' + latex)
+def _replace_latex(latex, debug=0):
+    if debug:
+        print('latex (in) = ' + latex)
+
     latex_out = latex
     if type(latex_out) != str:
         latex_out = str(latex_out)
     for find_str, replace_str in zip(find_list, replace_list):
         latex_out = latex_out.replace(find_str, replace_str)
-    print('latex_out = ' + latex_out)
+
+    if debug:
+        print('latex_out = ' + latex_out)
+        
     return latex_out
 

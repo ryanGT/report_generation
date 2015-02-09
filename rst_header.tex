@@ -1,7 +1,7 @@
 \usepackage{fullpage}
 \usepackage{color}
 \definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
-\definecolor{darkgreen}{rgb}{0,0.4,0.1}
+\definecolor{darkgreen}{rgb}{0,0.5,0.1}
 \definecolor{mygray}{gray}{0.9}
 \usepackage{listings}
 \lstset{
@@ -36,3 +36,7 @@
 \usepackage{amsmath}
 \usepackage{fancyhdr}
 \newcommand{\Tmat}[2]{^#1_#2T}
+\ifthenelse{\isundefined{\hypersetup}}{
+  \usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=darkgreen]{hyperref}
+  \urlstyle{same} % normal text font (alternatives: tt, rm, sf)
+}{}

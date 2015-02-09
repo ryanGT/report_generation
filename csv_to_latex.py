@@ -103,6 +103,7 @@ def csv_to_latex_table(csvlist, labels=None, extra_col_labels=None, \
         if i == items_per_page:
             out('\\end{tabular}')
             out('')
+            out('\\pagebreak')
             out(startline)
             out('\\hline')
             out(label_row)

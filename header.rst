@@ -30,7 +30,8 @@
     \newcommand{\sign}{\textrm{sign}}
     \newcommand{\sgn}{\textrm{sgn}}
     \newcommand{\inlinegraphic}[2]{\begin{center}\includegraphics[width=#1]{#2}\end{center}}
-
+    \def\*#1{\mathbf{#1}}
+    \newcommand{\M}[1]{\mathbf{#1}}
 
 
 

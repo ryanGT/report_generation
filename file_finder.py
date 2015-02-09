@@ -173,7 +173,32 @@ class File_Finder(object):
                                               skiplist=skiplist)
         return files
        
-   
+
+
+class Glob_File_Finder(File_Finder):
+    def __init__(self, folderpath, glob_pat='*.rst', \
+                 skipdirs=['.comments'], skiplist=[], \
+                 skipextlist=None):
+        self.folder = folderpath
+        self.glob_pat = glob_pat
+        self.skipdirs = skipdirs
+        self.skiplist = skiplist
+        self.skipextlist = skipextlist
+
+
+    def Find_All_Files(self):
+        if not hasattr(self, 'all_folders'):
+            self.Find_All_Folders()
+            
+        self.all_files = []
+    
+        for folder in self.all_folders:
+            print('folder = ' + folder)
+            cur_pat = os.path.join(folder, self.glob_pat)
+            print('cur_pat = ' + cur_pat)
+            curfiles = glob.glob(cur_pat)
+            self.all_files.extend(curfiles)
+
 
 class course_website_archiver(File_Finder):
     """This is a class for finding all the files needed to create a

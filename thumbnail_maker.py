@@ -15,7 +15,7 @@ skipfolders = ['html','thumbnails','blog_size','resized', \
                '.comments','900by600','cache','screensize', \
                'exclude','auto']
 
-skipnames = ['index.html','outline.pdf','outline1.png', 'reminders1.png', \
+skipnames = ['index.html','index_in.html','outline.pdf','outline1.png', 'reminders1.png', \
              'announcements1.png','reminders.pdf','announcements.pdf', \
              'random_order_generator.py']
 
@@ -936,7 +936,8 @@ class DirectoryPage(ThumbNailPage):
       #self.Add_Other_Links(['.tex'], "LaTeX Files:")
       self.Add_Other_Links(['.pkl'], "Pickle Files:")
       self.Add_Other_Links(['.html'], "HTML Files:")
-      self.Add_Other_Links(['.avi','.mpeg'], "Mutli-Media Files:")
+      self.Add_Other_Links(['.avi','.mpeg','.mp3','.m4a'], "Mutli-Media Files:")
+      self.Add_Other_Links(['.xls','.xlsx'], "Excel Files:")
       self.Add_Other_Links(['.txt','.csv'], "Data Files:")
       if bl:
          self.Add_bottom_link(dest=bl_dest)
@@ -973,16 +974,20 @@ link_dict = {'.py':'Python Files', \
              '.pdf':'PDF Files', \
              '.html':'HTML Files',\
              '.txt':'TXT Data Files',\
+             '.xls':'Excel Files',\
+             '.xlsx':'Excel Files',\
              '.zip':'ZIP Archives', \
              '.tex':'LaTeX Files', \
              '.pkl':'Pickle Files', \
              '.mov':'Movie Files', \
+             '.mp3':'Audio Files', \
+             '.m4a':'Audio Files', \
              '.m4v':'Movie Files'}
 
 
 class DirectoryPage_no_images(DirectoryPage_courses):
    def Create_Most(self, bl=True, bl_dest=None, \
-                   extlist=['html','m4v','mov','pdf','py','m'],\
+                   extlist=['html','m4v','mov','pdf','py','m','m4a','mp3'],\
                    add_up_link=True):
       index_rst = self.find_top_level_index_rst()
       clean_ext_list = []
@@ -1086,7 +1091,7 @@ class MainPageMaker2:
                 htmldir='html', thumbdir='thumbnails', \
                 screensizedir='screensize', \
                 extlist=['.html','.py','.pdf','.m',\
-                         '.mpeg','.avi','.txt','.csv'], \
+                         '.mpeg','.avi','.mp3','.m4a','.txt','.csv'], \
                 imageextlist=['.png', '.jpg', '.jpeg'], \
                 screensizesize=(875,700), \
                 thumbsize=(400, 300), \
@@ -1166,15 +1171,29 @@ class MainPageMaker2:
                else:
                   title = foldername
             #print('bodyin = '+str(bodyin))
-            curpage = self.DirectoryPageclass(root, \
-                                              extlist=self.imageextlist, \
-                                              HTMLclass=self.HTMLclass, \
-                                              contentlist=self.extlist, \
-                                              bodyin=bodyin, \
-                                              title=title, \
-                                              screensizedir=self.screensizedir, \
-                                              skiplist=self.skiplist, \
-                                              lecture_pat=self.lecture_pat)
+            print('\n'*5)
+            print('root = ' + root)
+            #look for index_in.rst
+            rst_in_path = os.path.join(root, 'index_in.rst')
+            print('looking for rst in: ' + rst_in_path)
+
+            if os.path.exists(rst_in_path):
+                print('\n'*2)
+                print('===========> found index_in.rst <==============')
+                print('\n'*2)
+                myclass = DirectoryPage_index_rst_only
+            else:
+                myclass = self.DirectoryPageclass 
+                
+            curpage = myclass(root, \
+                              extlist=self.imageextlist, \
+                              HTMLclass=self.HTMLclass, \
+                              contentlist=self.extlist, \
+                              bodyin=bodyin, \
+                              title=title, \
+                              screensizedir=self.screensizedir, \
+                              skiplist=self.skiplist, \
+                              lecture_pat=self.lecture_pat)
             ## if root == '/home/ryan/siue/classes/454/2012/lectures/05_22_12':
             ##    pdb.set_trace()
             if toplevel:
@@ -1196,7 +1215,7 @@ class MainPageMaker_no_images:
    are assumed to have mainly html and pdf files (though py and m
    files are also acceptable)."""
    def __init__(self, folder, title=None, body=None, \
-                extlist=['.html','.py','.pdf','.m'], \
+                extlist=['.html','.py','.pdf','.m','.m4a','.mp3'], \
                 skiplist=[], \
                 DirectoryPageclass=DirectoryPage_no_images, \
                 lecture_pat='ME*_%0.4i'):
