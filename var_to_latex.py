@@ -308,7 +308,7 @@ def is_quantity(myvar):
         return False
 
 def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
-                    fmt='%0.4f', eps=1.0e-12, replacelist=None, \
+                    fmt='%0.4g', eps=1.0e-12, replacelist=None, \
                     debug=0, **kwargs):
     """Convert variable myvar to LaTeX by checking whether
     or not it is a scalar.

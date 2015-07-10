@@ -32,6 +32,13 @@
     \newcommand{\inlinegraphic}[2]{\begin{center}\includegraphics[width=#1]{#2}\end{center}}
     \def\*#1{\mathbf{#1}}
     \newcommand{\M}[1]{\mathbf{#1}}
+    \newcommand{\roboticstitle}[1]{
+       \begin{tabular*}
+           {\textwidth}
+           {@{\extracolsep{\fill}}lcr} ME 454/ECE 467 - Summer 2015 
+               & #1 & Name:\rule{1.75in}{1pt}
+       \end{tabular*}
+    }
 
 
 
