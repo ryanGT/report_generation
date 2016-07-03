@@ -9,7 +9,6 @@ import pyp_to_rst, rwkos
 
 import sys
 
-from IPython.core.debugger import Pdb
 
 usage = 'usage: %prog [options] inputfile.py'
 parser = OptionParser(usage)

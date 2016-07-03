@@ -129,7 +129,7 @@ import relpath, pdb
 
 import replacelist
 
-from IPython.core.debugger import Pdb
+#from IPython.core.debugger import Pdb
 
 #import pytexutils
 #reload(pytexutils)
