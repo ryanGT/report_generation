@@ -10,7 +10,7 @@ try:
 except:
     quantities_imported = False
 
-from IPython.core.debugger import Pdb
+#from IPython.core.debugger import Pdb
 import pdb
 s = sympy.var('s')
 
@@ -314,14 +314,14 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
     or not it is a scalar.
 
     If ams is True, assume the LaTeX header includes
-    \usepackage{amsmath} so that bmatrix is used rather than \left[
-    \begin{array}{ccccc} ... \end{array} \right].
+    \\usepackage{amsmath} so that bmatrix is used rather than \left[
+    \\begin{array}{ccccc} ... \\end{array} \\right].
 
     This function always returns a list so that the output is
     consistant for scalar and matrix variables.  For scalars, the list
     will contain only one line.
 
-    env may be either 'equation' or 'eqnarray'."""
+    env may be either equation or eqnarray."""
     if debug:
         print('mylhs=%s' % mylhs)
         print('myvar=%s' % myvar)
