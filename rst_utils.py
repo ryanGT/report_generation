@@ -1,4 +1,4 @@
-import txt_mixin
+import txt_mixin, re
 
 #from IPython.core.debugger import Pdb
 
@@ -10,7 +10,66 @@ class rst_file(txt_mixin.txt_file_with_list):
         else:
             return False
 
+    def find_title(self, pat='^=+$'):
+        """I am 95% certain the title has to come first, so I am
+        searching for two inds at the beginning that should be two
+        lines apart."""
+        inds = self.findallre(pat)
+        # the first two inds should have the title in between them and be
+        # one line apart:
+        assert inds[1] == inds[0] + 2, "overline/underline problem"
+        self.title_ind = inds[0] + 1
+        self.title = self.list[self.title_ind]
+        return self.title
+    
 
+    def find_subtitle(self, pat='^~+$'):
+        """There should be only one match for the subtitle decorator"""
+        inds = self.findallre(pat)
+        assert len(inds) < 2, "bad pattern, mulitple matches for subtitle decorator"
+        if len(inds) == 0:
+            self.subtitle = None
+            self.subtitle_ind = None
+        else:
+            self.subtitle_ind = inds[0] - 1
+            self.subtitle = self.list[self.subtitle_ind]
+            return self.subtitle
+        
+
+    def find_header(self, pat='^=+$'):
+        """This code is based on the assumption that the document
+        title uses equal signs for over and under lining and that the
+        subtitle uses ~ underlining if a subtitle is present.  The
+        header ends just before the first section title.  The first
+        section title follows title and subtitle (if subtitle is
+        present).  If subtitle is present, it must follow title
+        (docutils requires this)."""
+        if not hasattr(self, 'title_ind'):
+            self.find_title()
+        if not hasattr(self, 'subtitle_ind'):
+            self.find_subtitle()
+        inds = self.findallre(pat)
+
+        # find the first section after title or subtitle
+        if self.subtitle_ind is not None:
+            min_ind = self.subtitle_ind + 1
+        else:
+            min_ind = self.title_ind + 1
+
+        while inds[0] < min_ind:
+            inds.pop(0)
+
+        self.header_end = inds[0] - 1
+        self.header = self.list[0:self.header_end]
+        return self.header
+
+    def get_body(self):
+        if not hasattr(self, 'header_end'):
+            self.find_header()
+        self.body = self.list[self.header_end:]
+        return self.body
+        
+        
     def find_section_inds(self, title, dec='==='):
         """Find all instances of title in self.list, then filter so
         that only thos followed by a line starting with dec are left.
