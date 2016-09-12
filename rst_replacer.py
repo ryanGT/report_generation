@@ -1,5 +1,5 @@
 import txt_mixin
-reload(txt_mixin)
+#reload(txt_mixin)
 
 class rst_replacer(txt_mixin.txt_file_with_list):
     """Note that this is really working on the tex file output by
