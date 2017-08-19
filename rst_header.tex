@@ -28,6 +28,7 @@
  showstringspaces=false,
 %%% keywordstyle=\color{blue}\bfseries,
  keywordstyle=\bfseries\color{blue},
+ keywords={void,digitalWrite,HIGH,LOW},
  escapeinside={(*}{*)},
 %%% emph={unknownparams},
  emphstyle=\bfseries\color{blue},
@@ -35,6 +36,15 @@
  %%backgroundcolor=\color{mygray}
 backgroundcolor=\color{white}
 }
+
+\lstset{language=C,
+    basicstyle=\ttfamily,
+    keywordstyle=\bfseries,
+    showstringspaces=false,
+    morekeywords={include, printf},
+    stringstyle=\ttfamily\color{orange}
+}
+
 \usepackage{amsmath}
 \usepackage{fancyhdr}
 \newcommand{\Tmat}[2]{^#1_#2T}

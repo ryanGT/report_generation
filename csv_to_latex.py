@@ -14,7 +14,7 @@ def csv_header(headerpath=None, \
         if os.path.exists('header.tex'):
             headerpath = 'header.tex'
         else:
-            headerpath = '/Users/rkrauss/git/report_generation/class_list_header.tex'
+            headerpath = '/Users/kraussry/git/report_generation/class_list_header.tex'
             
     headerline = '\\input{%s}' % headerpath
     latex_out = [headerline]
@@ -39,11 +39,15 @@ def csv_to_latex_table(csvlist, labels=None, extra_col_labels=None, \
                        lhead='', rhead='', chead='', \
                        lfoot='', rfoot='', cfoot='', \
                        just_tabular=False):#cfoot='\\thepage'
+    import copy
+    csvlist = copy.copy(csvlist)
+    
     if labels is None:
         labels = csvlist.pop(0)
 
     if type(labels) == str:
-        labels = labels.split(delim)
+        if delim is not None:
+            labels = labels.split(delim)
 
     if extra_col_labels is not None:
         labels.extend(extra_col_labels)

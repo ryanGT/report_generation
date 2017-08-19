@@ -55,19 +55,19 @@ def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False, \
 
     if hasattr(val,'ToLatex'):
         return val.ToLatex(eps=eps, fmt=fmt)
-    elif is_sympy(val) or is_sage(val):
-        sympy_out = sympy.latex(val, profile=sympy_profile)
-        if strip_sympy:
-            bad_list = ['\\begin{equation*}', \
-                        '\\end{equation*}', \
-                        '\\begin{equation}', \
-                        '\\end{equation}', \
-                        '$']
-            for item in bad_list:
-                sympy_out = sympy_out.replace(item,'')
-        if debug:
-            print('sympy_out='+sympy_out)
-        return sympy_out
+    ## elif is_sympy(val) or is_sage(val):
+    ##     sympy_out = sympy.latex(val, profile=sympy_profile)
+    ##     if strip_sympy:
+    ##         bad_list = ['\\begin{equation*}', \
+    ##                     '\\end{equation*}', \
+    ##                     '\\begin{equation}', \
+    ##                     '\\end{equation}', \
+    ##                     '$']
+    ##         for item in bad_list:
+    ##             sympy_out = sympy_out.replace(item,'')
+    ##     if debug:
+    ##         print('sympy_out='+sympy_out)
+    ##     return sympy_out
     val = AbsEpsilonCheck(val)#this zeros out any vals that have very small absolute values
     test = bool(isinstance(val, complex))
     #print('test = '+str(test))
@@ -113,10 +113,10 @@ def RowToLatex(rowin, fmt='%0.4g', eps=1e-12, debug=0):
             print('case 2')
         #return fmt % rowin
         return ComplexNumToStr(rowin, eps=eps, fmt=fmt)
-    elif is_sympy(rowin) or is_sage(rowin):
-        if debug:
-            print('case 3')
-        return sympy.latex(rowin, profile=sympy_profile)
+    ## elif is_sympy(rowin) or is_sage(rowin):
+    ##     if debug:
+    ##         print('case 3')
+    ##     return sympy.latex(rowin, profile=sympy_profile)
     elif type(rowin) == matrix:
         if debug:
             print('case 4')

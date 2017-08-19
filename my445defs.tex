@@ -1,0 +1,20 @@
+\newcommand{\HT}[2]{^{#1}_{#2}\mathbf{T}}
+\newcommand{\Pvect}[2]{^{#1}\mathbf{P}_{#2}}
+%\newcommand{\M}[1]{\textbf{#1}}
+\newcommand{\R}[2]{^{#1}_{#2}\mathbf{R}}
+\newcommand{\T}[2]{^{#1}_{#2}\mathbf{T}}
+\renewcommand{\Vec}[3]{^{#2}\mathbf{#1}_{#3}}
+\newcommand{\unitvect}[3]{^{#2}\hat{#1}_{#3}}
+\renewcommand{\P}[2]{^{#1}\mathbf{P}_{#2}}
+\newcommand{\cs}[1]{\left\{#1\right\}}
+\newcommand{\Rz}[1]{\begin{bmatrix}\cos{#1} & -\sin{#1} & 0 \\
+                                    \sin{#1} & \cos{#1} & 0 \\ 
+                                    0 & 0 & 1 \end{bmatrix}}
+\newcommand{\Tz}[4]{\begin{bmatrix}\cos{#1} & -\sin{#1} & 0 & #2\\
+                                    \sin{#1} & \cos{#1} & 0 & #3\\ 
+                                    0 & 0 & 1 & #4\\
+                                    0 & 0 & 0 & 1\end{bmatrix}}
+\newcommand{\Tzneg}[4]{\begin{bmatrix}\cos{#1} & \sin{#1} & 0 & #2\\
+                                    -\sin{#1} & \cos{#1} & 0 & #3\\ 
+                                    0 & 0 & 1 & #4\\
+                                    0 & 0 & 0 & 1\end{bmatrix}}
