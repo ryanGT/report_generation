@@ -3,6 +3,7 @@ from numpy import ndarray, array, poly1d
 from scipy import isscalar, shape, imag, real, angle
 from scipy import isscalar, shape, imag, real, array, angle, matrix
 import sympy,decimal
+import control
 try:
     import quantities,re
     quantities_imported = True
@@ -97,7 +98,32 @@ def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False, \
 
 
 
+def TF_to_latex(G):
+    """I am assuming that Richard Murray and friends continue to print
+    a reasonable, latex-compatible string with numerator and
+    denominator seperated by a fraction bar made of dashes.  If I
+    filter the blank entries, I should be left with a list of three
+    entries: [num,bar,den].  Num and den are assumed to be valid latex
+    with s^2 syntax and such."""
 
+    mystr = str(G)
+    mylist = mystr.split('\n')
+    clean_list = list(filter(None, mylist))
+    assert len(clean_list) == 3, \
+           "something is wrong with [num, dashes, den] asumption: " + \
+           str(clean_list)
+
+    dashes = clean_list[1]
+    assert dashes[0:2] == '--', "something is wrong with dashes" + \
+           str(clean_list)
+
+    num = clean_list[0].strip()
+    den = clean_list[2].strip()
+    outstr = "\\frac{%s}{%s}" % (num,den)
+
+    return outstr
+    
+    
 def RowToLatex(rowin, fmt='%0.4g', eps=1e-12, debug=0):
     if debug:
         print('rowin = ' + str(rowin))
@@ -339,6 +365,9 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         else:
             rhs = strout
             outlist = [mylhs +' = '+strout]
+    elif type(myvar) ==  control.xferfcn.TransferFunction:
+        rhs = TF_to_latex(myvar)
+        env = 'equation'
     elif type(myvar) == type(decimal.Decimal()):
         rhs = str(myvar)
         #outlist = [mylhs+' = '+str(myvar)]
