@@ -9,6 +9,18 @@ webroot_pat = "http://www4.gvsu.edu/kraussry/445_lectures/lecture_%0.2i"
 web_hd_find = "http://www4.gvsu.edu/kraussry/"
 web_hd_rep = "/Volumes/facweb-private/KRAUSSRY/"
 
+def clean_bullets(listin):
+    listout = []
+
+    for line in listin:
+        if line:
+            # this is also filtering blank lines
+            if (line[0] == '-') and (line[1] == ' '):
+                line = '*' + line[1:]
+            listout.append(line)
+
+    return listout
+    
 def convert_webpath_to_facweb_smb_path(pathin):
     """Replace a true webpath that starts with
     http://www4/gvsu.edu/kraussry
@@ -107,7 +119,7 @@ class subsection(txt_mixin.txt_list):
 
     def skip_me(self):
         mytitle = self.title.lower()
-        if mytitle in ['notes','planning']:
+        if mytitle in self.skip_list:
             return True
         else:
             return False
@@ -127,21 +139,45 @@ class subsection(txt_mixin.txt_list):
             self.lines.append(curline)
 
 
+    def am_I_notes(self):
+        if self.title.lower().strip() == 'notes':
+            return True
+        else:
+            return False
+        
+
     def to_gslides_md(self):
         if self.skip_me():
             return []
         else:
             list_out = []
+            if self.am_I_notes():
+                list_out.append('<!--')
+
             for line in self.lines:
+                # check if this is the Notes title line
+                # only write to the output if this is not the
+                # Notes title line:
                 cur_out = line.to_gslides_md()
+                q = title_pat.search(cur_out)
+                if q:
+                    cur_out += ': \n'
+                #if not q:
                 list_out.append(cur_out)
 
+                
+            if self.am_I_notes():
+                list_out.append('-->')
+                # dashes as bullets in the notes seems to make gslides mad
+                #list_out = clean_bullets(list_out)
+                
             return list_out
         
             
     def __init__(self, listin, webroot):
         txt_mixin.txt_list.__init__(self, listin)
         self.webroot = webroot
+        self.skip_list = ['planning']
         self.pop_initial_blank_lines()
         self.get_title()
         self.parse_lines()
@@ -190,6 +226,7 @@ class section(subsection):
     def __init__(self, listin, webroot):
         txt_mixin.txt_list.__init__(self, listin)
         self.webroot = webroot
+        self.skip_list = ['notes','planning']
         self.pop_initial_blank_lines()
         self.get_title()
         self.find_subsections()
