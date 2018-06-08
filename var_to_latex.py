@@ -306,12 +306,12 @@ def NumToLatex(ent,fmt='%0.5g',eps=1e-20, printeps=False, polar=True):
 ##         imagstr=ifmt%ipart+'j'#'$\\jmath$'
 ##     return realstr+imagstr
 
-def is_sympy(myvar):
-##     typestr = str(type(myvar))
-##     ind = typestr.find('sympy.')
-##     out = bool( ind >- 1 )
-    out = isinstance(myvar, sympy.core.BasicType)
-    return out
+##def is_sympy(myvar):
+####     typestr = str(type(myvar))
+####     ind = typestr.find('sympy.')
+####     out = bool( ind >- 1 )
+##    out = isinstance(myvar, sympy.core.BasicType)
+##    return out
 
 
 def is_sage(myvar):
@@ -383,10 +383,10 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         rhs = NumToLatex(myvar,fmt=fmt)
         #outlist = [mylhs +' = '+NumToLatex(myvar,fmt=fmt)]
         env = 'equation'#need a number to latex convert that handles nice formatting
-    elif is_sympy(myvar) or is_sage(myvar):
-        rhs = sympy.latex(myvar, profile=sympy_profile)
-        #outlist = [mylhs +' = '+sympy.latex(myvar, profile=sympy_profile)]
-        env = 'equation'
+    ##elif is_sympy(myvar) or is_sage(myvar):
+    ##    rhs = sympy.latex(myvar, profile=sympy_profile)
+    ##    #outlist = [mylhs +' = '+sympy.latex(myvar, profile=sympy_profile)]
+    ##    env = 'equation'
     elif is_quantity(myvar):
         #qstr = str(myvar).replace(' ','\\;')
         if markup.config.use_unicode:

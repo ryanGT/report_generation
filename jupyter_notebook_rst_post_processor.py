@@ -14,7 +14,12 @@ def find_hide(block):
         if q:
             return True
         
-    
+"""As of May 2018, all Python blocks are now in '.. code:: ipython3'
+directives and the output is in '.. parsed-literal::'  I think this breaks
+pretty much everything."""
+
+code_pat = '.. code:: ipython3'
+
 class jupyter_rst_post_processor(txt_mixin.txt_file_with_list):
     def __init__(self, pathin, replacepath=None, outputonly=False):
         txt_mixin.txt_file_with_list.__init__(self, pathin)
@@ -119,7 +124,7 @@ class jupyter_rst_post_processor(txt_mixin.txt_file_with_list):
 
 
     def find_start_of_next_python_block(self, start_ind):
-        next_ind = self.list.findnext('.. code:: python', ind=start_ind)
+        next_ind = self.list.findnext(code_pat, ind=start_ind)
         return next_ind
 
 
