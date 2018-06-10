@@ -199,7 +199,46 @@ class jupyter_rst_post_processor(txt_mixin.txt_file_with_list):
             eqn = ws + '%s = %s' % (lhs, rhs)
             eqn_out = self.process_eqn(eqn)
             self.list[rhsind] = eqn_out
-            
+
+
+    def insert_figure_widths(self, default="6in"):
+        # Fully processing figures should eventually include
+        # looking up widths in a file called figwidths.csv
+        # where the first column is the png file name and the second is
+        # the width as a latex string.
+        #
+        # I should also look for a possible pdf file that corresponds to
+        # the png, possibly dropping _cropped and _padded
+        next_ind = -1
+        Nlim = 50000
+
+        for i in range(Nlim):
+            # sort of a while 1, but with a limit
+            start_ind = next_ind + 1
+            next_ind = self.list.findnext('.. figure::', ind=start_ind)
+            if next_ind:
+                end_ind = self.find_end_of_python_block(next_ind)# I think this is really
+                                                                 # just find end of block.
+                block = self.get_block(next_ind, end_ind)
+                has_width = False
+                for line in block:
+                    if line.find(':width:') > -1:
+                        has_width = True
+                # search for whitespace
+                ws = ' '*4
+                if len(block) > 1:
+                    if block[1].find(':') > 0:
+                        ws, rest = block[1].split(':',1)
+
+                # eventually need to look up width from a text file containing filenames
+                width_line = ws + ':width: %s' % default
+                
+                self.list.insert(next_ind+1, width_line)
+            else:
+                break
+                        
+
+
             
     def main(self):
         self.process_math_environments()# find lhs's and do search and replace
@@ -207,7 +246,8 @@ class jupyter_rst_post_processor(txt_mixin.txt_file_with_list):
         # - pop all if output only
         # - pop those that contain #hide
         self.pop_hidden_python_blocks()
-
+        # fix fig widths
+        self.insert_figure_widths()
         pathout = self.save()
         return pathout
 
