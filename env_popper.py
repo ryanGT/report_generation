@@ -1,4 +1,9 @@
-import re, copy, os, sys, StringIO,traceback
+import re, copy, os, sys, traceback
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 import txt_mixin
 #reload(txt_mixin)
@@ -328,8 +333,8 @@ class multicols(txt_mixin.txt_file_with_list):
         for obj, string in zip(self.objlist, self.list):
             cur_bool = obj.string == string
             if not cur_bool:
-                raise StandardError, msg + '\n' + 'Problem items:' + \
-                      str(obj) +'!=' +string
+                raise StandardError(msg + '\n' + 'Problem items:' + \
+                      str(obj) +'!=' +string)
         self.widths = widths
         for item in list_map:
             cur_func = getattr(self.list, item)
@@ -492,10 +497,10 @@ class python_report_env(object):
     def Execute(self, namespace, **kwargs):
         self.namespace = namespace
         try:
-            exec self.code in namespace
+            exec(self.code, namespace)
         except:
             for i,l in enumerate(self.code.split('\n')):
-                print '%s: %s'%(i+1,l)
+                print('%s: %s'%(i+1,l))
             traceback.print_exc(file=sys.stdout)
             sys.exit(0)
 

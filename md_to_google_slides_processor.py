@@ -180,18 +180,18 @@ class text(object):
         return web_addr
         
 
-    def eqn_to_web_png(self, eq_text):
+    def eqn_to_web_png(self, eq_text, add_bg=False):
         eqn_num = eqns_to_png.find_eqn_num(png_eqn_pat)
         basename = png_eqn_pat % eqn_num
 
         eqns_to_png.expr_to_png(eq_text, basename, \
-                                add_bg=False, pad=10)
+                                add_bg=add_bg, pad=10)
         webaddr = self.find_and_copy_equation(basename)
         append_eqn_to_dict(eq_text, webaddr)
         return webaddr
     
 
-    def process_equations(self):
+    def process_equations(self, add_bg=False):
         """Find and process equations in the section/slide.  Equations
         should be enclosed within one or two dollar signs.  I need to
         handle both of those well.  I kind of need to handle the
@@ -232,7 +232,7 @@ class text(object):
                 # find eqn number
                 webaddr = look_up_eqn(eq_text)
                 if not webaddr:
-                    webaddr = self.eqn_to_web_png(eq_text)
+                    webaddr = self.eqn_to_web_png(eq_text, add_bg=add_bg)
                 simp_str = simplify_eqn(eq_text)
                 rep_str = '**EQN: ** %s ![](%s)' % (simp_str, webaddr)
                 #self.line = eqn_p.sub(rep_str, self.line, 1)
@@ -266,11 +266,12 @@ class text(object):
         return skip_me
         
 
-    def to_gslides_md(self):
+    def to_gslides_md(self, add_bg=False):
         if self.skip_check():
             # return an empty string and exit
             return None
-        self.process_equations()#<-- we only want to do this if we are
+        self.process_equations(add_bg=add_bg)#<-- we only want to do this
+                                # if we are
                                 # generating google slides; we want to leave
                                 # the equations alone for the main outline
                                 # file.
@@ -307,7 +308,7 @@ def find_padded_png(pathin):
 
 def pdf_to_png(pathin):
     path_no_ext, ext = os.path.splitext(pathin)
-    if ext == '.png':
+    if ext in ['.png','.jpg']:
         # do nothing
         return pathin
     elif ext == '.pdf':
@@ -329,7 +330,9 @@ class figure(text):
         self.pat = pat
 
         
-    def to_gslides_md(self):
+    def to_gslides_md(self, **dummy_args):
+        # using dummy_args to absorb things like add_bg that
+        # do not affect images
         q = self.pat.search(self.line)
         raw_src = q.group(1)
         #src = copy.copy(figpath)#save in case we need to copy it
@@ -413,7 +416,7 @@ class subsection(txt_mixin.txt_list):
         return self.parent.get_and_inc_eqn_number()
 
 
-    def to_gslides_md(self):
+    def to_gslides_md(self, add_bg=False):
         if self.skip_me():
             return []
         else:
@@ -425,7 +428,7 @@ class subsection(txt_mixin.txt_list):
                 # check if this is the Notes title line
                 # only write to the output if this is not the
                 # Notes title line:
-                cur_out = line.to_gslides_md()
+                cur_out = line.to_gslides_md(add_bg=add_bg)
                 if cur_out is not None:
                     # Why am I appending a colon?
                     q = title_pat.search(cur_out)
@@ -480,14 +483,14 @@ class section(subsection):
         self.subsections = subsections
 
         
-    def to_gslides_md(self):
+    def to_gslides_md(self, add_bg=False):
         if self.skip_me():
             return []
         else:
             list_out = ['---','']
             
             for subsec in self.subsections:
-                cur_list = subsec.to_gslides_md()
+                cur_list = subsec.to_gslides_md(add_bg=add_bg)
                 list_out.extend(cur_list)
 
             return list_out
@@ -540,11 +543,11 @@ class md_file(txt_mixin.txt_file_with_list):
             slide_num += 1
 
 
-    def to_gslides_md(self):
+    def to_gslides_md(self, add_bg=False):
         list_out = []
 
         for section in self.sections:
-            cur_list = section.to_gslides_md()
+            cur_list = section.to_gslides_md(add_bg=add_bg)
             list_out.extend(cur_list)
 
         self.list_out = list_out

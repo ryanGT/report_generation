@@ -1,6 +1,11 @@
 import os, copy, sys, time, pdb, \
-       subprocess, tokenize, cStringIO, re, glob
+       subprocess, tokenize, re, glob
 
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+    
 import numpy
 from scipy import isscalar, shape, imag, real, array
 
@@ -204,7 +209,7 @@ def readfile(pathin, strip=False, rstrip=True, verbosity=0):
             print('found file:'+goodpath)
         f=open(goodpath,'r')
     else:
-        raise StandardError, "Could not find "+pathin+" in sys.path"
+        raise StandardError("Could not find "+pathin+" in sys.path")
     listin=f.readlines()
     f.close()
     if strip:
@@ -342,7 +347,7 @@ def FindReplacementCandidates(listin):
     elif type(listin)==str:
         myinput = listin
     else:
-        raise TypeError, "I don't know what to do with input of type:"+str(type(listin))+"\nlistin="+str(listin)
+        raise TypeError("I don't know what to do with input of type:"+str(type(listin))+"\nlistin="+str(listin))
     findpats = []
     mylhs = lhs(myinput)
     if mylhs:
@@ -444,7 +449,7 @@ class MyTokenizer:
     def __init__(self, codein):
         if type(codein)==list:
             codein = ''.join(codein)
-        a = cStringIO.StringIO(codein)
+        a = StringIO(codein)
         self.tokgen = tokenize.generate_tokens(a.readline)
 
     def Tokenize(self):
