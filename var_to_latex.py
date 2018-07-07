@@ -171,7 +171,7 @@ def IsLongArray(arrayin, thresh=10):
     return False
 
 
-def ShortOneDArrayToLatex(arrayin, mylhs, fmt='%0.4g'):
+def ShortOneDArrayToLatex(arrayin, mylhs='LHS', fmt='%0.4g'):
     curstr = mylhs +' = '
     N = arrayin.shape[0]
     curstr += '\\left[ \\begin{array}{'+'c'*N+'}'
@@ -213,9 +213,11 @@ def OneDArrayToLatex(arrayin, mylhs, fmt='%0.4g', maxelem=10, wrap=5):
         return outlist, 'eqnarray'
 
 
-def ArrayToLaTex(arrayin, mylhs, fmt='%0.4g', ams=True, \
+def ArrayToLaTex(arrayin, mylhs='LHS', fmt='%0.4g', ams=True, \
                  matstr='bmatrix', eps=1e-12, \
-                 join_char=' ', debug=0):#matstr='smallmatrix'
+                 join_char=' ', debug=0, eqnonly=True):#matstr='smallmatrix'
+    """I am adding eqnonly SS18 to use this more cleanly directly from Jupyter.  I no longer
+    use it in the original design context."""
     ########
     # Need to handle large arrays
     # intelligently.
@@ -250,7 +252,10 @@ def ArrayToLaTex(arrayin, mylhs, fmt='%0.4g', ams=True, \
         else:
             outlist.append('\\end{array} \\right]')
         outlist = join_char.join(outlist)
-        return outlist, 'equation'
+        if eqnonly:
+            return outlist
+        else:
+            return outlist, 'equation'
 
 
 def _ArrayToLaTex(arrayin, fmt='%0.4g'):
