@@ -1,4 +1,4 @@
-import os, glob, time, md5sum, pdb
+import os, glob, time, pdb
 import rwkos
 
 def dont_fitler_me(pathin, skipnames):

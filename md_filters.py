@@ -30,6 +30,24 @@ def remove_subsection_filter(listin, section_name, level_str='#'):
     return listin
     
 
+def bold_blue_notes_heading(listin):
+    """Find any line that starts with # Notes (any number of #'s) and replace with
+       \boldblue{Notes}
+       level_str is not forced to match the start of a line, it would
+       match any line that contained # section_name.  Set level_str to
+       "##" to force a second level subsection.
+    """
+    mypat = '# Notes'
+    repstr = '\\boldblue{Notes}'
+    for i in range(10000):
+        ind = listin.findnext(mypat)
+        if ind:
+            listin[ind] = repstr
+        else:
+            break
+    return listin
+
+
 def remove_notes_filter(listin):
     listout = remove_subsection_filter(listin, "Notes")
     listout = remove_subsection_filter(listout, "notes")
@@ -86,7 +104,21 @@ class md_filter_file(txt_mixin.txt_file_with_list):
         for cur_filter in self.filter_list:
             listout = cur_filter(self.list)
             self.list = listout
-            
+
+        if self.only_last:
+            self.remove_rest()
+
+
+    def remove_rest(self):
+        """Remove all but the last slide/subection; do this by finding the
+        first and last instance of ## Title and removing everything from the 
+        first title up to the last title
+        """
+        ind1 = self.list.findnextre('^#')#<-- first section or subsection after header
+        ind_list = self.list.findallre('^## ')
+        ind2 = ind_list[-1]
+        self.list[ind1:ind2] = []
+        
 
     def save(self):
         fno, old_ext = os.path.splitext(self.pathin)
@@ -98,21 +130,25 @@ class md_filter_file(txt_mixin.txt_file_with_list):
 
 
 
-
-notes_list = [beamer_to_notes_filter, onlyslides_for_notes, onlynotes_for_notes]
+# Note: bold_blue_notes_heading probably needs to be last, since it messes with # Notes
+notes_list = [beamer_to_notes_filter, onlyslides_for_notes, onlynotes_for_notes, \
+              bold_blue_notes_heading]
 
 
 class notes_md_filter_file(md_filter_file):
     def __init__(self, pathin=None, filter_list=notes_list, ext='_notes.md', **kwargs):
         md_filter_file.__init__(self, pathin=pathin, filter_list=filter_list, \
                                 ext=ext, **kwargs)
-        
+        self.only_last = False
 
 
 beamer_slide_list = [remove_notes_filter, onlyslides_for_slides, onlynotes_for_slides]
 
 
 class beamer_slides_md_filter_file(md_filter_file):
-    def __init__(self, pathin=None, filter_list=beamer_slide_list, ext='_slides.md', **kwargs):
+    def __init__(self, pathin=None, filter_list=beamer_slide_list, ext='_slides.md', \
+                 only_last=False,  **kwargs):
         md_filter_file.__init__(self, pathin=pathin, filter_list=filter_list, \
                                 ext=ext, **kwargs)
+        self.only_last = only_last
+        
