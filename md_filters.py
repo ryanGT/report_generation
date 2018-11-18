@@ -30,6 +30,19 @@ def remove_subsection_filter(listin, section_name, level_str='#'):
     return listin
     
 
+def number_slides_for_handout(listin):
+    """Put slide # in paranthesis after title to coordinate notes and
+    slides"""
+    myinds = listin.findall('## ',forcestart=1)
+    slide_num = 1
+    for ind in myinds:
+        outstr = listin[ind] + " (Slide %i)" % slide_num
+        slide_num += 1
+        listin[ind] = outstr
+
+    return listin
+        
+
 def bold_blue_notes_heading(listin):
     """Find any line that starts with # Notes (any number of #'s) and replace with
        \boldblue{Notes}
@@ -132,7 +145,7 @@ class md_filter_file(txt_mixin.txt_file_with_list):
 
 # Note: bold_blue_notes_heading probably needs to be last, since it messes with # Notes
 notes_list = [beamer_to_notes_filter, onlyslides_for_notes, onlynotes_for_notes, \
-              bold_blue_notes_heading]
+              bold_blue_notes_heading, number_slides_for_handout]
 
 
 class notes_md_filter_file(md_filter_file):
