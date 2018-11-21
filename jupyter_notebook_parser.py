@@ -4,6 +4,13 @@ import os, copy
 import basic_file_ops
 import re
 
+
+######################
+#
+# This is probably old and broken
+#
+######################
+
 web_folder_mount_point = "/Volumes/facweb-private/KRAUSSRY/"
 www_mount_point = "http://www4.gvsu.edu/kraussry/"
 

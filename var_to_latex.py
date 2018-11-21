@@ -98,13 +98,14 @@ def ComplexNumToStr(val, eps=1e-12, fmt='%0.4g', polar=False, \
 
 
 
-def TF_to_latex(G):
+def TF_to_latex(G, lhs=None):
     """I am assuming that Richard Murray and friends continue to print
     a reasonable, latex-compatible string with numerator and
     denominator seperated by a fraction bar made of dashes.  If I
     filter the blank entries, I should be left with a list of three
     entries: [num,bar,den].  Num and den are assumed to be valid latex
     with s^2 syntax and such."""
+
 
     mystr = str(G)
     mylist = mystr.split('\n')
@@ -121,7 +122,18 @@ def TF_to_latex(G):
     den = clean_list[2].strip()
     outstr = "\\frac{%s}{%s}" % (num,den)
 
+    if lhs is not None:
+        outstr = lhs + ' = ' + outstr
     return outstr
+
+
+def print_TF(G, substr=None, mainstr='G'):
+    lhs = mainstr
+    if substr is not None:
+        lhs += '_{%s}' % substr
+    lhs += '(s)'
+    outstr = TF_to_latex(G, lhs=lhs)
+    print(outstr)
     
     
 def RowToLatex(rowin, fmt='%0.4g', eps=1e-12, debug=0):
