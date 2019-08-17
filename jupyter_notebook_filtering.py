@@ -5,7 +5,16 @@ import basic_file_ops
 import re
 
 title_p = re.compile('^ +"#+ (.*)')
+heading_level_p = re.compile('^ +"(#+) .*')
 hide_py_p = re.compile('^ +"# *hide')
+
+def find_header_level(header_line):
+    pound_match = heading_level_p.search(header_line).group(1)
+    pound_match = pound_match.strip()
+    print("pound_match = %s" % pound_match)
+    mylevel = len(pound_match)
+    return mylevel
+
 
 class nb_cell(object):
     def find_source(self):
@@ -82,7 +91,7 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         self.cells = cells
 
 
-    def is_header(self, cell_ind):
+    def is_header(self, cell_ind, max_level=None):
         """A header cell is a markdown cell whose source starts with spaces, a
         quotation mark, any number of # and then a space."""
         curcell = self.cells[cell_ind]
@@ -92,28 +101,40 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
             line0 = curcell.source[0]
             q = title_p.search(line0)
             if q is not None:
-                return True
+                if max_level is not None:
+                    match_level = find_header_level(line0)
+                    print("max_level = %s, match_level = %s" % (max_level, match_level))
+                    if match_level > max_level:
+                        return False
+                    else:
+                        return True
+                else:
+                    return True
             else:
                 return False
 
 
-    def get_title(self, cell_ind):
+    def get_title(self, cell_ind, raw=False):
+        """Use regexp to get the title without the #'s unless raw=True"""
         header_cell = self.cells[cell_ind]
-        q = title_p.search(header_cell.source[0])
-        title = q.group(1).strip()
-        return title
+        if raw:
+            return header_cell.source[0]
+        else:
+            q = title_p.search(header_cell.source[0])
+            title = q.group(1).strip()
+            return title
 
     
-    def find_next_header_cell(self, start_ind=0):
+    def find_next_header_cell(self, start_ind=0, max_level=None):
         N = len(self.cells)
         for i in range(start_ind, N):
-            if self.is_header(i):
+            if self.is_header(i, max_level=max_level):
                 return i
 
             
     def find_next_header_cell_matching_title(self, start_ind=0, title_list=None):
         if title_list is None:
-            title_list = ['Notes', 'Hide', 'Skip']
+            title_list = ['Notes', 'Hide', 'Skip', 'Solution']
         N = len(self.cells)
         for i in range(start_ind,N):
             h_cell = self.find_next_header_cell(start_ind)
@@ -147,7 +168,10 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
                 break
             else:
                 # we found one, go to the next section heading
-                stop_ind = self.find_next_header_cell(next_header_ind+1)
+                print("next_header_ind = %s" % next_header_ind)
+                print("title = %s" % self.get_title(next_header_ind, raw=True))
+                match_level = find_header_level(self.get_title(next_header_ind, raw=True))
+                stop_ind = self.find_next_header_cell(next_header_ind+1,max_level=match_level)
                 ind_pairs.append([next_header_ind, stop_ind])
                 if stop_ind is None:
                     break
@@ -163,6 +187,13 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         for pair in ind_pairs:
             self.cells[pair[0]:pair[1]] = []
 
+
+    def cut_after_stop_here(self):
+        """Find # Stop Here and cut everything after it."""
+        ind = self.find_next_header_cell_matching_title(title_list=['Stop Here','stop here'])
+        if ind:
+            self.cells[ind:] = []
+        
 
     def is_hidden_python(self, cell_ind):
         curcell = self.cells[cell_ind]

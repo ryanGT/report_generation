@@ -1,6 +1,5 @@
-import txt_mixin, copy, os
-
-
+import txt_mixin, copy, os, re
+import relpath
 
 def remove_columns_filter(listin):
     for i in range(10000):
@@ -12,12 +11,22 @@ def remove_columns_filter(listin):
     return listin
 
 
+def remove_pauses_filter(listin):
+    for i in range(10000):
+        ind = listin.findnext('\\pause')
+        if ind:
+            listin.pop(ind)
+        else:
+            break
+    return listin
+    
+
 
 def remove_subsection_filter(listin, section_name, level_str='#'):
     """Remove everything from # section_name to the next #.  Since
        level_str is not forced to match the start of a line, it would
        match any line that contained # section_name.  Set level_str to
-       "##" to force a second level subsection.
+       '##' to force a second level subsection.
     """
     mypat = level_str + ' ' + section_name
     for i in range(10000):
@@ -48,7 +57,7 @@ def bold_blue_notes_heading(listin):
        \boldblue{Notes}
        level_str is not forced to match the start of a line, it would
        match any line that contained # section_name.  Set level_str to
-       "##" to force a second level subsection.
+       '##' to force a second level subsection.
     """
     mypat = '# Notes'
     repstr = '\\boldblue{Notes}'
@@ -105,6 +114,91 @@ def beamer_to_notes_filter(listin):
     return listin
 
 
+p_myfig = re.compile(r'\\myfig{(.*)}{(.*)}')
+
+def pdf_image_to_png(pdfpath):
+    fno, ext = os.path.splitext(pdfpath)
+    png_path = fno + '.png'
+    if not os.path.exists(png_path):
+        cmd = 'pdf_to_png_2016.py %s' % pdfpath
+        os.system(cmd)
+    return png_path
+
+
+def png_path_to_img_line(png_path, width=600):
+    lineout = '<img src="%s" width=%ipx>' % (png_path, width)
+    return lineout
+
+
+def beamer_img_path_to_html_path(img_path):
+    """An image used in a beamer slide could be a pdf, jpg, or png (or
+    possibly others).  If it is a pdf, the corresponding png needs to
+    be created if it doesn't exist.  This function calls
+    pdf_image_to_png to create the image if necessary and then returns
+    the .png or .jpg filename."""
+    fno, ext = os.path.splitext(img_path)
+    if ext[0] == '.':
+        ext = ext[1:]
+    if ext == 'pdf':
+        out_path =  pdf_image_to_png(img_path)
+    elif ext in ['jpg','jpeg','png']:
+        out_path = img_path
+    return out_path
+
+
+def beamer_img_path_to_html_line(img_path, width=600):
+    out_path = beamer_img_path_to_html_path(img_path)
+    if out_path.find("/Users/kraussry/") > -1:
+        out_path = relpath.relpath(out_path)
+    src_html_line = png_path_to_img_line(out_path, width=width)
+    return src_html_line
+
+
+def myfig_to_html_filter(listin, width=600):
+    myinds = listin.findall('\\myfig{')
+    for ind in myinds:
+        match_line = listin[ind]
+        print("match_line = %s" % match_line)
+        q = p_myfig.search(match_line)
+        filepath = q.group(2)
+        ## check extension here
+        lineout = beamer_img_path_to_html_line(filepath, width=width)
+        listin[ind] = lineout
+    return listin
+
+
+p_put_image = re.compile(r'\\put.*{\\includegraphics.*{(.*)}}')
+
+
+def process_picture_put_images(listin, width=600):
+    pat = '\\begin{picture}'
+    for i in range(1000):
+        start_ind = listin.findnext(pat, forcestart=1)
+        if not start_ind:
+            print("exiting")
+            break
+        else:
+            print("put start_ind = %s" % start_ind)
+            print("start line: %s" % listin[start_ind])
+            end_ind = listin.findnext('\\end{picture}', ind=start_ind, \
+                                      forcestart=1)
+            print("end line: %s" % listin[end_ind])
+            pict_list = copy.copy(listin[start_ind:end_ind+1])
+            pict_list.pop(0)
+            pict_list.pop(-1)
+            print("end_ind = %s" % end_ind)
+            # we are left with either \put{ ...\includegraphics[]{}}
+            # or stuff we can't deal with
+            for j, curline in enumerate(pict_list):
+                q = p_put_image.search(curline)
+                filepath = q.group(1)
+                png_path = pdf_image_to_png(filepath)
+                lineout = png_path_to_img_line(png_path, width)
+                pict_list[j] = lineout
+        listin[start_ind:end_ind+1] = pict_list
+    return listin
+
+
 class md_filter_file(txt_mixin.txt_file_with_list):
     def __init__(self, pathin=None, filter_list=[], ext='_filtered.md', **kwargs):
         txt_mixin.txt_file_with_list.__init__(self, pathin=pathin, **kwargs)
@@ -136,6 +230,8 @@ class md_filter_file(txt_mixin.txt_file_with_list):
     def save(self):
         fno, old_ext = os.path.splitext(self.pathin)
         self.pathout = fno + self.ext
+        print("pathin = %s" % self.pathin)
+        print("pathout = %s" % self.pathout)
         txt_mixin.txt_file_with_list.save(self, self.pathout)
 
 
@@ -165,3 +261,20 @@ class beamer_slides_md_filter_file(md_filter_file):
                                 ext=ext, **kwargs)
         self.only_last = only_last
         
+
+
+html_filter_list = [process_picture_put_images, myfig_to_html_filter, \
+                    remove_pauses_filter, \
+                    remove_notes_filter, number_slides_for_handout]
+
+## long-term: I need to add filtering for columns and possibly other things
+
+class lecture_outline_to_html_ready_markdown(md_filter_file):
+    """Convert a beamer-flavored markdown lecture outline file to a
+    markdown file ready to be converted to html or a jupyer notebook."""
+    def __init__(self, pathin=None, filter_list=html_filter_list, ext='_for_html.md', \
+                 only_last=False,  **kwargs):
+        md_filter_file.__init__(self, pathin=pathin, filter_list=filter_list, \
+                                ext=ext, **kwargs)
+        self.only_last = only_last
+    

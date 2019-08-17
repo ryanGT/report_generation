@@ -401,8 +401,8 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         #outlist = [mylhs +' = '+str(myvar)]
         env = 'equation'
     elif isinstance(myvar, poly1d):
-        rhs, env = ArrayToLaTex(myvar.coeffs, mylhs, ams=ams, fmt=fmt)
-
+        rhs = ArrayToLaTex(myvar.coeffs, mylhs, ams=ams, fmt=fmt)
+        env = 'equation'
     elif isscalar(myvar):
         rhs = NumToLatex(myvar,fmt=fmt)
         #outlist = [mylhs +' = '+NumToLatex(myvar,fmt=fmt)]
@@ -428,7 +428,8 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
         rhs = mag+r'\;'+dims
     else:
         #print('calling ArrayToLaTex on variable with lhs '+mylhs+'.  str(myvar)='+str(myvar))
-        rhs, env = ArrayToLaTex(myvar, mylhs, ams=ams,fmt=fmt)
+        rhs = ArrayToLaTex(myvar, mylhs, ams=ams,fmt=fmt)
+        env = 'equation'
     if debug:
         print('rhs = ' + str(rhs))
     if mylhs != '':
