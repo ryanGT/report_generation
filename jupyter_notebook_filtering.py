@@ -8,10 +8,11 @@ title_p = re.compile('^ +"#+ (.*)')
 heading_level_p = re.compile('^ +"(#+) .*')
 hide_py_p = re.compile('^ +"# *hide')
 
-def find_header_level(header_line):
+def find_header_level(header_line,debug=False):
     pound_match = heading_level_p.search(header_line).group(1)
     pound_match = pound_match.strip()
-    print("pound_match = %s" % pound_match)
+    if debug:
+        print("pound_match = %s" % pound_match)
     mylevel = len(pound_match)
     return mylevel
 
@@ -91,11 +92,13 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         self.cells = cells
 
 
-    def is_header(self, cell_ind, max_level=None):
+    def is_header(self, cell_ind, max_level=None, debug=False):
         """A header cell is a markdown cell whose source starts with spaces, a
         quotation mark, any number of # and then a space."""
         curcell = self.cells[cell_ind]
         if curcell.celltype != 'markdown':
+            return False
+        elif len(curcell.source) == 0:
             return False
         else:
             line0 = curcell.source[0]
@@ -103,7 +106,8 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
             if q is not None:
                 if max_level is not None:
                     match_level = find_header_level(line0)
-                    print("max_level = %s, match_level = %s" % (max_level, match_level))
+                    if debug:
+                        print("max_level = %s, match_level = %s" % (max_level, match_level))
                     if match_level > max_level:
                         return False
                     else:
@@ -122,6 +126,8 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         else:
             q = title_p.search(header_cell.source[0])
             title = q.group(1).strip()
+            if title[-1] == '"':
+                title = title[0:-1]
             return title
 
     
@@ -131,13 +137,24 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
             if self.is_header(i, max_level=max_level):
                 return i
 
+
+    def find_document_header(self):
+        """If the first cell is a level one header, it is assumed to
+        contain the document title."""
+        ind = self.find_next_header_cell(start_ind=0, max_level=1)
+        if ind == 0:
+            return self.get_title(0)
+        else:
+            return None
+
             
-    def find_next_header_cell_matching_title(self, start_ind=0, title_list=None):
+    def find_next_header_cell_matching_title(self, start_ind=0, title_list=None, \
+                                             max_level=5):
         if title_list is None:
-            title_list = ['Notes', 'Hide', 'Skip', 'Solution']
+            title_list = ['Notes', 'Hide', 'Skip', 'Solution','notes']
         N = len(self.cells)
         for i in range(start_ind,N):
-            h_cell = self.find_next_header_cell(start_ind)
+            h_cell = self.find_next_header_cell(start_ind,max_level=max_level)
             if h_cell is None:
                 # there are no more header cells
                 return None
@@ -154,7 +171,7 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         return None
 
 
-    def find_notes_to_remove(self):
+    def find_notes_to_remove(self, max_level=5, debug=False):
         """Find markdown cells whose source first line of source contains #
            Notes, # Hide, or # Skip and then find the index of the
            next header cell, so that we can delete the notes 'section'
@@ -163,13 +180,15 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         start_ind = 0
         ind_pairs = []
         for i in range(N):
-            next_header_ind = self.find_next_header_cell_matching_title(start_ind)
+            next_header_ind = self.find_next_header_cell_matching_title(start_ind, \
+                                                                        max_level=max_level)
             if next_header_ind is None:
                 break
             else:
                 # we found one, go to the next section heading
-                print("next_header_ind = %s" % next_header_ind)
-                print("title = %s" % self.get_title(next_header_ind, raw=True))
+                if debug:
+                    print("next_header_ind = %s" % next_header_ind)
+                    print("title = %s" % self.get_title(next_header_ind, raw=True))
                 match_level = find_header_level(self.get_title(next_header_ind, raw=True))
                 stop_ind = self.find_next_header_cell(next_header_ind+1,max_level=match_level)
                 ind_pairs.append([next_header_ind, stop_ind])
@@ -180,14 +199,65 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         return ind_pairs
 
 
-    def pop_notes(self):
-        ind_pairs = self.find_notes_to_remove()
+    def find_top_level_notes(self, debug=False):
+        """Find # Notes or # note(s) with exactly one # (top level)
+        and cut everything until the next # Slide # slide(s) or
+        # end note"""
+        ind_pairs = self.find_notes_to_remove(max_level=1)
+        if debug:
+            for ind1, ind2 in ind_pairs:
+                title1 = self.get_title(ind1, raw=True)
+                line1 = "start: %s, %s" % (ind1, title1)
+                print(line1)
+                if ind2:
+                    title2 = self.get_title(ind2, raw=True)
+                    line2 = "start: %s, %s" % (ind2, title2)
+                else:
+                    line2 = "(at end)"
+                    print(line2)
+        return ind_pairs
+
+
+    def pop_notes(self, ind_pairs=None):
+        if ind_pairs is None:
+            ind_pairs = self.find_notes_to_remove()
         ind_pairs.reverse()# remove them from the end first so that we
                            # don't shift the indices
         for pair in ind_pairs:
             self.cells[pair[0]:pair[1]] = []
 
 
+
+    def pop_top_level_notes(self):
+        ind_pairs = self.find_top_level_notes()
+        self.pop_notes(ind_pairs)
+
+
+    def pop_top_level_end_section_titles(self):
+        """In order to accomidate top level notes to keep things out
+        of slides, I needed to implement # End Notes and # Slides and
+        stuff.  Those top level sections need to be removed before a
+        notebook is ready for slides or sharing with students."""
+        N = len(self.cells)
+        start_ind = 0
+        inds = []
+        mylist = ['Slides','slides','End Notes','End Note','end notes','slide','slides']
+        for i in range(N):
+            next_header_ind = self.find_next_header_cell_matching_title(start_ind, \
+                                                                        title_list=mylist, \
+                                                                        max_level=1)
+            if next_header_ind:
+                inds.append(next_header_ind)
+                start_ind = next_header_ind+1
+            else:
+                break
+            
+        inds.reverse()
+        for ind in inds:
+            self.cells.pop(ind)
+
+            
+        
     def cut_after_stop_here(self):
         """Find # Stop Here and cut everything after it."""
         ind = self.find_next_header_cell_matching_title(title_list=['Stop Here','stop here'])

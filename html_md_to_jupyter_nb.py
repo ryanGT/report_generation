@@ -60,18 +60,18 @@ def replace_quotes_not_on_imgs(linein):
         return lineout
         
 
-def clean_line(linein):
+def clean_line(linein, debug=0):
     rep_list = [('\\','\\\\'), \
                 ('"','\\"'), \
                 ('\t','    '), \
                 ]
     lineout = linein
-    if lineout.find("$") > -1:
+    if (lineout.find("$") > -1) and debug:
         print("before replace: %s" % lineout)
     for myfind, myrep in rep_list:
         lineout = lineout.replace(myfind, myrep)
 
-    if lineout.find("$") > -1:
+    if (lineout.find("$") > -1) and debug:
         print("after replace: %s" % lineout)
     
     # lineout = replace_quotes_not_on_imgs(linein)
@@ -82,8 +82,9 @@ def clean_line(linein):
 class md_jupyter_file(txt_mixin.txt_file_with_list):
     def __init__(self, pathin=None,  **kwargs):
         txt_mixin.txt_file_with_list.__init__(self, pathin=pathin, **kwargs)
-        fno, ext = os.path.splitext(pathin)
-        self.outname = fno + '.ipynb'
+        if pathin is not None:
+            fno, ext = os.path.splitext(pathin)
+            self.outname = fno + '.ipynb'
         #self.main()
 
 
@@ -154,7 +155,7 @@ class md_jupyter_file(txt_mixin.txt_file_with_list):
         self._close_markdown_cell()
 
 
-    def append_multi_line_markdown_cell(self, lines):
+    def append_multi_line_markdown_cell(self, lines, debug=0):
         # find first non-blank line
         for i in range(len(lines)):
             if lines[i].strip():
@@ -165,7 +166,8 @@ class md_jupyter_file(txt_mixin.txt_file_with_list):
         for line in lines[start_ind:]:
             lineout = clean_line(line)
             outline = '    "%s\\n",' % lineout
-            print(outline)
+            if debug:
+                print(outline)
             self.out(outline)
         # delete trailing comma
         if self.ipynb_list[-1][-1] == ',':
@@ -173,12 +175,12 @@ class md_jupyter_file(txt_mixin.txt_file_with_list):
         self._close_markdown_cell()
         
         
-    def process_sections(self, debug=True, mystop=1000):
+    def process_sections(self, debug=0, mystop=1000):
         end_ind = 0
         for i in range(1000):
-            print("i = %i" % i)
+            #print("i = %i" % i)
             if i > mystop:
-                print("breaking")
+                #print("breaking")
                 break
             start_ind = self.find_next_level_one_or_two(start_ind=end_ind)
             start_line = self.list[start_ind]
@@ -218,7 +220,22 @@ class md_jupyter_file(txt_mixin.txt_file_with_list):
         self.init_list()
         #Pdb().set_trace()
         self.process_sections(mystop=mystop)
-        print("finished process_sections")
+        #print("finished process_sections")
         self.remove_trailing_comma()
         self.add_tail()
         
+
+
+def lecture_outline_jupyter_nb(title_line, outpath):
+    myfile = md_jupyter_file()
+    myfile.init_list()
+    myfile.append_markdown_cell_single_line(title_line)
+    myfile.append_markdown_cell_single_line('## Plan for today')
+    myfile.append_markdown_cell_single_line('')
+    #myfile.append_multi_line_markdown_cell(['- '])
+    myfile.outname = outpath
+    myfile.remove_trailing_comma()
+    myfile.add_tail()
+    myfile.save()
+
+

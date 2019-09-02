@@ -272,9 +272,43 @@ html_filter_list = [process_picture_put_images, myfig_to_html_filter, \
 class lecture_outline_to_html_ready_markdown(md_filter_file):
     """Convert a beamer-flavored markdown lecture outline file to a
     markdown file ready to be converted to html or a jupyer notebook."""
+    def find_title(self):
+        title_pat1 = "<!-- Lecture (.*)-->"
+        inds = self.list.findallre(title_pat1)
+        assert len(inds) > 0, "Did not find %s" % title_pat1
+        assert len(inds) == 1, "Found more than one match for %s" % title_pat1
+        match_line = self.list[inds[0]]
+        q = re.search(title_pat1, match_line)
+        self.title = "Lecture %s" % q.group(1).strip()
+        return self.title
+
+
+    def insert_title(self):
+        """If there is a --- pair near the top of the file, insert the
+        title after the second one."""
+        dash_inds = self.list.findall('---')
+        if dash_inds:
+            assert dash_inds[0] < 5, "First set of dashes not within first 5 rows"
+            # Do I ever not want to insert the title?
+            # - maybe if I thought it was already in there?
+            # - not worrying about that for now
+            insert_title_ind = dash_inds[1] + 1
+        else:
+            insert_title_ind = 0
+        self.list.insert(insert_title_ind, "")#blank line after title
+        title_line = "# %s" % self.title
+        self.list.insert(insert_title_ind, title_line)
+
+        if insert_title_ind > 0:
+            # add another blank line above the title
+            self.list.insert(insert_title_ind, "")
+            
+        
     def __init__(self, pathin=None, filter_list=html_filter_list, ext='_for_html.md', \
                  only_last=False,  **kwargs):
         md_filter_file.__init__(self, pathin=pathin, filter_list=filter_list, \
                                 ext=ext, **kwargs)
         self.only_last = only_last
+        self.find_title()
+        self.insert_title()
     
