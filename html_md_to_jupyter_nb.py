@@ -157,11 +157,16 @@ class md_jupyter_file(txt_mixin.txt_file_with_list):
 
     def append_multi_line_markdown_cell(self, lines, debug=0):
         # find first non-blank line
+        start_ind = None
         for i in range(len(lines)):
             if lines[i].strip():
                 start_ind = i
                 break
-            
+
+        if start_ind is None:
+            # we did not find a non-blank line
+            # - do nothing
+            return
         self._start_markdown_cell()
         for line in lines[start_ind:]:
             lineout = clean_line(line)
