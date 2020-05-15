@@ -156,12 +156,32 @@ class md_jupyter_file(txt_mixin.txt_file_with_list):
 
 
     def append_multi_line_markdown_cell(self, lines, debug=0):
+        #print("at start of append_multi_line_markdown_cell:")
+        #print("lines = %s" % lines)
+
+        # test if lines is only blanks
+        # - if so, exit
+
+        found_non_blank = False
+        for line in lines:
+            if line.strip():
+                found_non_blank = True
+
+        if not found_non_blank:
+            #print("only blank lines: %s" % lines)
+            return
+        
         # find first non-blank line
         start_ind = None
         for i in range(len(lines)):
             if lines[i].strip():
                 start_ind = i
                 break
+
+
+        # pop blank lines from the end
+        while not lines[-1]:
+            lines.pop(-1)
 
         if start_ind is None:
             # we did not find a non-blank line
@@ -190,7 +210,7 @@ class md_jupyter_file(txt_mixin.txt_file_with_list):
             start_ind = self.find_next_level_one_or_two(start_ind=end_ind)
             start_line = self.list[start_ind]
             # put the section or slide heading in its own cell:
-            self.append_markdown_cell_single_line(start_line)
+            self.append_markdown_cell_single_line(clean_line(start_line))
             
             if check_level(start_line) == 1:
                 # section heading, assumed to be a single line

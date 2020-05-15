@@ -1,6 +1,6 @@
 import txt_mixin
 #from IPython.core.debugger import Pdb
-import os, copy
+import os, copy, txt_database
 import basic_file_ops
 import re
 
@@ -15,6 +15,26 @@ def find_header_level(header_line,debug=False):
         print("pound_match = %s" % pound_match)
     mylevel = len(pound_match)
     return mylevel
+
+
+def clean_one_line_of_src_text(line_in):
+    # notebook src text has leading spaces and has leading and trailing "'s
+    lineout = line_in.strip()
+
+    # leadning quote removal
+    if lineout[0] == '"':
+        lineout = lineout[1:]
+
+    # multi-line cells end in ", while the last line or single line cells
+    # just end in "
+    if lineout[-2:] == '",':
+        lineout = lineout[0:-2]
+    elif lineout[-1] == '"':
+        lineout = lineout[0:-1]
+
+    lineout = lineout.replace('\\n','\n')
+    lineout = lineout.strip()
+    return lineout
 
 
 class nb_cell(object):
@@ -75,8 +95,8 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         """Assuming chop_header and chop_metadata have already been called,
            self.list should just contain the lines associated with the
            cells and each cell should start with two spaces and then a
-           {.  Additionally, each cel should end with two spaces and a
-           } and all but the last cel should have a comma after the }.
+           {.  Additionally, each cell should end with two spaces and a
+           } and all but the last cell should have a comma after the }.
         """
         # Assume that two spaces and an open or close curly brace
         # marks the start and end of every cell
@@ -142,8 +162,8 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         """If the first cell is a level one header, it is assumed to
         contain the document title."""
         ind = self.find_next_header_cell(start_ind=0, max_level=1)
-        if ind == 0:
-            return self.get_title(0)
+        if ind < 3:
+            return self.get_title(ind)
         else:
             return None
 
@@ -322,3 +342,208 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         self.chop_metadata()
         self.break_into_cells()
         
+
+
+class jupyter_notebook_title_popper(jupyter_notebook):
+    def pop_title_header(self):
+        """If the first cell is a level one header, it is assumed to
+        contain the document title."""
+        ind = self.find_next_header_cell(start_ind=0, max_level=1)
+        if ind < 3:
+            self.cells.pop(ind)
+
+    
+    def save(self, pathout):
+        self.pop_title_header()
+        self.reassemble()
+        txt_mixin.dump(pathout, self.linesout)
+
+
+
+class wsq_question_extracter(jupyter_notebook):
+    """A class for processing WSQ feedback jupyter notebooks.  Keep
+    only stuff related to questions and question feedback
+
+    Find a heading.  If the head doesn't start with Question, pop
+    until the next header.  Repeat."""
+    def main(self):
+        self.chop_header()
+        self.chop_metadata()
+        self.break_into_cells()
+        self.pop_non_question_sections()
+
+
+    def pop_non_question_sections(self):
+        N = len(self.cells)
+        start_ind = 0
+        for i in range(start_ind,N):
+            h_cell_ind = self.find_next_header_cell(start_ind)
+            if h_cell_ind is None:
+                # there are no more header cells
+                return None
+            h_cell_ind_2 = self.find_next_header_cell(h_cell_ind+1)
+            title = self.get_title(h_cell_ind)
+            if title.find("Question") != 0:
+                # we found stuff to delete
+                self.cells[h_cell_ind:h_cell_ind_2] = []
+                # start_ind remains unchanged in this situation, I think
+            else:
+                # we wound a question and need to skip to the next header
+                start_ind = h_cell_ind + 1
+
+    
+    def save(self):
+        fno, ext = os.path.splitext(self.pathin)
+        self.pathout = fno + "_questions.ipynb"
+        self.reassemble()
+        txt_mixin.dump(self.pathout, self.linesout)
+
+
+student_name_p = re.compile("Student [0-9]+: *(.*)")
+
+
+# email list path for 445_SS20
+grades_folder = "/Users/kraussry/Google Drive/Teaching/445_SS20/grades"
+bb_name = 'bb_email_list.csv'
+bb_path = os.path.join(grades_folder, bb_name)
+bb_list = txt_database.txt_database_from_file(bb_path)
+
+
+def get_email_and_fname_for_student(student_name):
+    fname, lname = student_name.split(" ",1)
+    fname = fname.strip()
+    lname = lname.strip()
+    myind = -1
+    #case insenstive lastname search
+    for i, test in enumerate(bb_list.Last_Name):
+        lsearch = lname.lower()
+        ltest = test.lower()
+        if ltest.find(lsearch) == 0:
+            myind = i
+            break
+    if myind == -1:
+        msg = "problem with last name: %s" % lname
+        raise(ValueError, msg)
+    #myind = bb_list.get_ind(lname,"Last Name")
+    student = bb_list[myind]
+    user_id = student.Username
+    email = user_id + "@mail.gvsu.edu"
+    return fname, email
+
+
+class wsq_grade_emailer(wsq_question_extracter):
+    def find_next_student(self, start_ind):
+        """The grading jupyter notebooks have '# Student 1: Name' as
+        the top level headings.  So, the section for one student will
+        start with a level one header that matches the regexp
+        student_name_p."""
+        N = len(self.cells)
+        for i in range(start_ind,N):
+            h_cell = self.find_next_header_cell(start_ind,max_level=1)
+            if h_cell is None:
+                # there are no more header cells
+                return None
+            else:
+                title = self.get_title(h_cell)
+                title = title.strip()
+                q_student = student_name_p.match(title)
+                if q_student is not None:
+                    # we found a level one header cell
+                    # that matches the student header pattern
+                    return h_cell
+                # the title for this header cell didn't match the list,
+                # find the next header cell
+                start_ind = h_cell+1
+        # If we get to this point, we did not find a match
+        return None
+        
+
+    def get_level_one_or_two_header_that_starts_with(self, start_ind, \
+                                                     starts_with="Summary Feedback"):
+        """## Summary Feedback"""
+        for i in range(10):
+            h_cell = self.find_next_header_cell(start_ind,max_level=2)
+            title = self.get_title(h_cell)
+            if title.find(starts_with) == 0:
+                # we found it
+                return h_cell
+            else:
+                # move on to the next one
+                start_ind = h_cell+1
+
+
+    def get_source_text_from_cell(self, cell_ind):
+        mycell = self.cells[cell_ind]
+        mycell.find_source()
+        clean_src_lines = [clean_one_line_of_src_text(item) for item in mycell.source]
+        src_text = "\n".join(clean_src_lines) 
+        return src_text
+
+
+    def get_summary_feedback(self, start_ind):
+        sum_ind = self.get_level_one_or_two_header_that_starts_with(start_ind, \
+                                                                    "Summary Feedback")
+        src = self.get_source_text_from_cell(sum_ind+1)
+        return src
+
+
+    def get_question_feedback(self, start_ind):
+        sum_ind = self.get_level_one_or_two_header_that_starts_with(start_ind, \
+                                                                    "Question Feedback")
+        src = self.get_source_text_from_cell(sum_ind+1)
+        return src
+
+
+    def get_grade(self, start_ind):
+        sum_ind = self.get_level_one_or_two_header_that_starts_with(start_ind, \
+                                                                    "Grade")
+        src = self.get_source_text_from_cell(sum_ind+1)
+        return src
+
+        
+    def main_loop(self, video_num):
+        import gmail_smtp
+    
+        self.chop_header()
+        self.chop_metadata()
+        self.break_into_cells()
+
+        start_ind = 0
+        N = len(self.cells)
+
+        #Pdb().set_trace()
+        subject = "WSQ feedback for video %i" % video_num
+        for i in range(start_ind, N):
+            student_start = self.find_next_student(start_ind)
+            if student_start is None:
+                return
+            else:
+                start_ind = student_start + 1
+                student_header = self.get_title(student_start)
+                print("%i:, %s" % (student_start, student_header))
+                #Pdb().set_trace()
+                sum_fb = self.get_summary_feedback(start_ind)
+                q_fb = self.get_question_feedback(start_ind)
+                grade = self.get_grade(start_ind)
+                body_pat = "## %s\n\n%s\n\n" * 3
+                body = body_pat % ("Summary Feedback", sum_fb, \
+                                   "Question Feedback", q_fb, \
+                                   "Grade", grade)
+
+                q_student = student_name_p.search(student_header)
+                full_name = q_student.group(1)
+                fname, email = get_email_and_fname_for_student(full_name)
+
+                intro = "%s,\n\nHere is your feedback for the WSQ for video %i:\n\n" % \
+                        (fname, video_num)
+                print("email: %s" % email)
+                body = intro+body
+                print("body:\n")
+                print(body)
+                print("="*20)
+                gmail_smtp.send_mail_gvsu([email],subject, body)
+
+                # at this point, I need a first name, an email, and the video #
+                # to send the feedback
+                # - ideally, I would also save the grades into a csv file to upload to BB
+                

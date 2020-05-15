@@ -260,8 +260,11 @@ class beamer_slides_md_filter_file(md_filter_file):
         md_filter_file.__init__(self, pathin=pathin, filter_list=filter_list, \
                                 ext=ext, **kwargs)
         self.only_last = only_last
-        
 
+
+html_base_list = [process_picture_put_images, myfig_to_html_filter, \
+                    remove_pauses_filter, \
+                    remove_notes_filter]
 
 html_filter_list = [process_picture_put_images, myfig_to_html_filter, \
                     remove_pauses_filter, \
@@ -275,11 +278,13 @@ class lecture_outline_to_html_ready_markdown(md_filter_file):
     def find_title(self):
         title_pat1 = "<!-- Lecture (.*)-->"
         inds = self.list.findallre(title_pat1)
-        assert len(inds) > 0, "Did not find %s" % title_pat1
-        assert len(inds) == 1, "Found more than one match for %s" % title_pat1
-        match_line = self.list[inds[0]]
-        q = re.search(title_pat1, match_line)
-        self.title = "Lecture %s" % q.group(1).strip()
+        if len(inds) > 0:
+            assert len(inds) == 1, "Found more than one match for %s" % title_pat1
+            match_line = self.list[inds[0]]
+            q = re.search(title_pat1, match_line)
+            self.title = "Lecture %s" % q.group(1).strip()
+        else:
+            self.title = ''
         return self.title
 
 
@@ -310,5 +315,17 @@ class lecture_outline_to_html_ready_markdown(md_filter_file):
                                 ext=ext, **kwargs)
         self.only_last = only_last
         self.find_title()
-        self.insert_title()
+        if self.title:
+            self.insert_title()
+    
+
+class lecture_outline_no_numbers(lecture_outline_to_html_ready_markdown):
+    def __init__(self, pathin=None, filter_list=html_base_list, ext='_for_html.md', \
+                 only_last=False,  **kwargs):
+        md_filter_file.__init__(self, pathin=pathin, filter_list=filter_list, \
+                                ext=ext, **kwargs)
+        self.only_last = only_last
+        self.find_title()
+        if self.title:
+            self.insert_title()
     
