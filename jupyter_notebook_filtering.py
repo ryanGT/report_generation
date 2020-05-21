@@ -48,6 +48,14 @@ class nb_cell(object):
         self.start_ind = start_ind
 
 
+    def replace_source(self, new_src):
+        start_ind = self.lines.find('   "source": [')
+        assert self.lines[-2] == '   ]'
+        self.lines[start_ind+1:-2] = []
+        self.lines[start_ind+1:start_ind+1] = new_src
+
+
+
     def clean_celltype(self):
         bad_list = ['"',',']
         for s in bad_list:
@@ -124,6 +132,7 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
             line0 = curcell.source[0]
             q = title_p.search(line0)
             if q is not None:
+                #print("title = %s" % q.group(1))
                 if max_level is not None:
                     match_level = find_header_level(line0)
                     if debug:
@@ -359,7 +368,102 @@ class jupyter_notebook_title_popper(jupyter_notebook):
         txt_mixin.dump(pathout, self.linesout)
 
 
+class jupyter_notebook_slide_maker(jupyter_notebook_title_popper):
+    def process_only_cells(self, searchtitle, func):
+        """Find any cell whose title starts with searchtitle and call func, passing
+        in the cell index as the only input to func."""
+        #print("in pop_onlynotes_cells")
+        start_ind = 0
+        N = len(self.cells)
+        for i in range(start_ind,N):
+            h_cell = self.find_next_header_cell(start_ind)#,max_level=4)
+            #print("h_cell = %s" % h_cell)
+            if h_cell is None:
+                # there are no more header cells
+                return None
+            else:
+                title = self.get_title(h_cell)
+                title = title.strip()
+                if title.find(searchtitle) == 0:
+                    #we found one, pop it
+                    #print("found one")
+                    func(h_cell)
+                else:
+                    #print("non-matching title: %s" % title)
+                    # the title for this header cell didn't match onlynotes,
+                    # find the next header cell
+                    start_ind = h_cell+1
+        # If we get to this point, we did not find a match
+        return None
 
+
+    def process_one_onlynotes_cell(self, cell_ind):
+        self.cells.pop(cell_ind)
+
+
+    def process_onlynotes_cells(self):
+        self.process_only_cells("onlynotes", self.process_one_onlynotes_cell)
+
+
+    def process_only_slide_removing_just_only_line(self, cell_ind, onlytitle):
+        """For slides, a cell that starts with ### onlyslides should
+        have that first line removed.  Similarly for a notes document
+        and ### onlynotes"""
+        # Steps:
+        # - remove the onlynotes line
+        # - remove any blank lines at the start after
+        #   we remove the onlynotes line
+        mycell = self.cells[cell_ind]
+        mycell.find_source()
+        #src = copy.copy(mycell.source)
+        src = mycell.source
+        assert src[0].find(onlytitle) > -1, "%s not in first line" % onlytitle
+        src.pop(0)
+        for i in range(100):
+            line0 = src[0]
+            line0 = line0.replace('\\n','\n')
+            if line0[-2:] == '",':
+                line0 = line0[0:-2]
+            line0 = line0.replace('"','')
+            line0 = line0.strip()
+            #print("line0: %s" % line0)
+            if not line0:
+                src.pop(0)
+            else:
+                break
+            
+        #mycell.source = src
+        #self.cells[cell_ind] = mycell
+        #print("src out = %s" % mycell.source)
+        #print("!"*20)
+        mycell.replace_source(src)
+        #print("lines = %s" % mycell.lines)        
+
+
+    def process_one_onlyslides_cell(self, cell_ind):
+        self.process_only_slide_removing_just_only_line(cell_ind, "onlyslides")
+
+
+    def process_onlyslides_cells(self):
+        self.process_only_cells("onlyslides", self.process_one_onlyslides_cell)
+        
+    
+    def main(self):
+        jupyter_notebook.main(self)
+        self.process_onlynotes_cells()
+        self.process_onlyslides_cells()
+        
+
+class jupyter_notebook_student_notebook_maker(jupyter_notebook_slide_maker):
+    def process_one_onlynotes_cell(self, cell_ind):
+        self.process_only_slide_removing_just_only_line(cell_ind, "onlynotes")
+
+
+    def process_one_onlyslides_cell(self, cell_ind):
+        self.cells.pop(cell_ind)
+
+
+    
 class wsq_question_extracter(jupyter_notebook):
     """A class for processing WSQ feedback jupyter notebooks.  Keep
     only stuff related to questions and question feedback
