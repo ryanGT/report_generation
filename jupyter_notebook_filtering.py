@@ -403,7 +403,12 @@ student_name_p = re.compile("Student [0-9]+: *(.*)")
 
 
 # email list path for 445_SS20
-grades_folder = "/Users/kraussry/Google Drive/Teaching/445_SS20/grades"
+curdir = os.getcwd()
+if "/mnt/chromeos" in curdir:
+    grades_folder = '/mnt/chromeos/GoogleDrive/MyDrive/Teaching/445_SS20/grades'
+else:
+    grades_folder = "/Users/kraussry/Google Drive/Teaching/445_SS20/grades"
+
 bb_name = 'bb_email_list.csv'
 bb_path = os.path.join(grades_folder, bb_name)
 bb_list = txt_database.txt_database_from_file(bb_path)
