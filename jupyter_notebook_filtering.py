@@ -518,7 +518,7 @@ bb_path = os.path.join(grades_folder, bb_name)
 bb_list = txt_database.txt_database_from_file(bb_path)
 
 
-def get_email_and_fname_for_student(student_name):
+def get_lname_fname_and_uid_for_student(student_name):
     fname, lname = student_name.split(" ",1)
     fname = fname.strip()
     lname = lname.strip()
@@ -536,6 +536,11 @@ def get_email_and_fname_for_student(student_name):
     #myind = bb_list.get_ind(lname,"Last Name")
     student = bb_list[myind]
     user_id = student.Username
+    return lname, fname, user_id
+
+
+def get_email_and_fname_for_student(student_name):
+    lname, fname, user_id = get_lname_fname_and_uid_for_student(student_name)
     email = user_id + "@mail.gvsu.edu"
     return fname, email
 
@@ -610,7 +615,7 @@ class wsq_grade_emailer(wsq_question_extracter):
         return src
 
         
-    def main_loop(self, video_num):
+    def main_loop(self, video_num, subject_pat="WSQ feedback for video %i"):
         import gmail_smtp
     
         self.chop_header()
@@ -621,7 +626,7 @@ class wsq_grade_emailer(wsq_question_extracter):
         N = len(self.cells)
 
         #Pdb().set_trace()
-        subject = "WSQ feedback for video %i" % video_num
+        subject = subject_pat % video_num
         for i in range(start_ind, N):
             student_start = self.find_next_student(start_ind)
             if student_start is None:
@@ -656,3 +661,93 @@ class wsq_grade_emailer(wsq_question_extracter):
                 # to send the feedback
                 # - ideally, I would also save the grades into a csv file to upload to BB
                 
+
+
+class wsq_grades_to_csv_converter(wsq_grade_emailer):
+    def main_loop(self, video_num, csv_pat="wsq_grades_for_video_%0.3i.csv"):
+        self.chop_header()
+        self.chop_metadata()
+        self.break_into_cells()
+
+        start_ind = 0
+        N = len(self.cells)
+        rows = []
+        
+        #Pdb().set_trace()
+        for i in range(start_ind, N):
+            student_start = self.find_next_student(start_ind)
+            if student_start is None:
+                break
+            else:
+                start_ind = student_start + 1
+                student_header = self.get_title(student_start)
+                print("%i:, %s" % (student_start, student_header))
+                #Pdb().set_trace()
+                sum_fb = self.get_summary_feedback(start_ind)
+                q_fb = self.get_question_feedback(start_ind)
+                grade = self.get_grade(start_ind)
+                q_student = student_name_p.search(student_header)
+                full_name = q_student.group(1)
+                lname, fname, uid = get_lname_fname_and_uid_for_student(full_name)
+                if len(grade) > 2:
+                    msg = "likely problem with grade: vid num: %i, %s, %s" % (video_num, full_name, grade)
+                    print(msg)
+                    raise ValueError(msg)
+                currow = [lname, fname, uid, grade]#, sum_fb, q_fb]
+                rows.append(currow)
+                  # at this point, I need a first name, an email, and the video #
+                # to send the feedback
+                # - ideally, I would also save the grades into a csv file to upload to BB
+
+        outname = csv_pat % video_num
+        print("outname = %s" % outname)
+        mylabels = ['last name','first name','user id','grade']#,'summary feedback','question feedback']
+        txt_mixin.dump_delimited(outname, rows, delim=',', fmt='%s', labels=mylabels)
+
+
+class rsq_email_feedback(wsq_grade_emailer):
+    def main_loop(self, subject, intro_line_1):
+        import gmail_smtp
+
+        self.chop_header()
+        self.chop_metadata()
+        self.break_into_cells()
+
+        start_ind = 0
+        N = len(self.cells)
+
+        for i in range(start_ind, N):
+            student_start = self.find_next_student(start_ind)
+            if student_start is None:
+                return
+            else:
+                start_ind = student_start + 1
+                student_header = self.get_title(student_start)
+                print("%i:, %s" % (student_start, student_header))
+                #Pdb().set_trace()
+                sum_fb = self.get_summary_feedback(start_ind)
+                q_fb = self.get_question_feedback(start_ind)
+                grade = self.get_grade(start_ind)
+                body_pat = "## %s\n\n%s\n\n" * 3
+                body = body_pat % ("Summary Feedback", sum_fb, \
+                                   "Question Feedback", q_fb, \
+                                   "Grade", grade)
+
+                q_student = student_name_p.search(student_header)
+                full_name = q_student.group(1)
+                fname, email = get_email_and_fname_for_student(full_name)
+
+                intro = "%s,\n\n%s:\n\n" % \
+                        (fname, intro_line_1)
+                print("email: %s" % email)
+                body = intro+body
+                print("body:\n")
+                print(body)
+                print("="*20)
+                gmail_smtp.send_mail_gvsu([email],subject, body)
+
+                ### at this point, I need a first name, an email, and the video #
+                ### to send the feedback
+                ### - ideally, I would also save the grades into a csv file to upload to BB
+
+    

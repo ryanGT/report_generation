@@ -1,5 +1,5 @@
 import txt_mixin
-from IPython.core.debugger import Pdb
+#from IPython.core.debugger import Pdb
 import os
 import basic_file_ops
 import re
