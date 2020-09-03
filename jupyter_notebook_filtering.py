@@ -1,4 +1,4 @@
-import txt_mixin
+import txt_mixin, rwkos
 #from IPython.core.debugger import Pdb
 import os, copy, txt_database
 import basic_file_ops
@@ -507,11 +507,13 @@ student_name_p = re.compile("Student [0-9]+: *(.*)")
 
 
 # email list path for 445_SS20
-curdir = os.getcwd()
-if "/mnt/chromeos" in curdir:
-    grades_folder = '/mnt/chromeos/GoogleDrive/MyDrive/Teaching/445_SS20/grades'
-else:
-    grades_folder = "/Users/kraussry/Google Drive/Teaching/445_SS20/grades"
+#curdir = os.getcwd()
+#if "/mnt/chromeos" in curdir:
+#    grades_folder = '/mnt/chromeos/GoogleDrive/MyDrive/Teaching/445_SS20/grades'
+#else:
+#    grades_folder = "/Users/kraussry/Google Drive/Teaching/445_SS20/grades"
+root = rwkos.get_root("345")
+grades_folder = os.path.join(root, "grades")
 
 bb_name = 'bb_email_list.csv'
 bb_path = os.path.join(grades_folder, bb_name)
@@ -650,6 +652,9 @@ class wsq_grade_emailer(wsq_question_extracter):
 
                 intro = "%s,\n\nHere is your feedback for the WSQ for video %i:\n\n" % \
                         (fname, video_num)
+
+                if video_num == 0:
+                    intro += "Note that the WSQ for video 0 is practice and the grade does not actually count.  This feedback is to help you understand my expectations and get a better grade on future WSQs.\n\n"
                 print("email: %s" % email)
                 body = intro+body
                 print("body:\n")
