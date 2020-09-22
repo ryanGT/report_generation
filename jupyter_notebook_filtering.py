@@ -740,127 +740,32 @@ def get_team_num(header_line):
     return int(part1)
 
 
-def send_lab_email(addrlist, names, lab_num, feedback, \
-                   memo_grade, comp_Q_grade, total_grade):
+def send_lab_email(uids, names, lab_num, feedback, \
+                   memo_grade, comp_Q_grade, total_grade, debug=0):
+    import gmail_smtp
     subject = "lab %0.2i feedback" % lab_num
+    uid_list = uids.split(';')
+    uid_list = [item.strip() for item in uid_list]
+    email_list = [item + '@mail.gvsu.edu' for item in uid_list]
+    body = "%s, \n\nHere is your feedback on lab %i:\n\n" % (names, lab_num)
+    body += feedback
+    body += "\n\nMemo Grade: %s\n\nComp. Q. Grade: %s\n\nLab Grade: %s\n\nDr. Krauss" % \
+            (memo_grade, comp_Q_grade, total_grade)
+    if debug:
+        print("subject: %s" % subject)
+        print("body:\n\n%s" % body)
+        print('\n'*2)
+        print('='*30)
+    else:
+        if total_grade > 0:
+            gmail_smtp.send_mail_gvsu(email_list, subject, body)
     
-                   
-class lab_notebook_grade_extractor(wsq_grade_emailer):
-    def find_next_team(self, start_ind):
-        """The grading jupyter notebooks have '# Team 1: Madison and Ciana' as
-        the top level headings.  So, the section for one team will
-        start with a level one header that matches the regexp
-        team_p."""
-        N = len(self.cells)
-        for i in range(start_ind,N):
-            h_cell = self.find_next_header_cell(start_ind,max_level=1)
-            if h_cell is None:
-                # there are no more header cells
-                return None
-            else:
-                title = self.get_title(h_cell)
-                title = title.strip()
-                q_team = team_p.match(title)
-                if q_team is not None:
-                    # we found a level one header cell
-                    # that matches the student header pattern
-                    return h_cell
-                # the title for this header cell didn't match the list,
-                # find the next header cell
-                start_ind = h_cell+1
-        # If we get to this point, we did not find a match
-        return None
 
-
-    def get_userids(self, start_ind):
-        ind = self.get_any_level_header_that_starts_with(start_ind, \
-                                                         "userids")
-        title = self.get_title(ind)
-        uids = title.replace("userids:","")
-        uids = uids.strip()
-        return uids
-
-
-    def get_summary_feedback(self, start_ind):
-        sum_ind = self.get_level_one_or_two_header_that_starts_with(start_ind, \
-                                                                    "Summary Feedback")
-        src = self.get_source_text_from_cell(sum_ind+1)
-        return src
-
-
-    def get_question_feedback(self, start_ind):
-        sum_ind = self.get_level_one_or_two_header_that_starts_with(start_ind, \
-                                                                    "Question Feedback")
-        src = self.get_source_text_from_cell(sum_ind+1)
-        return src
-
-
-    def get_grade(self, start_ind):
-        sum_ind = self.get_level_one_or_two_header_that_starts_with(start_ind, \
-                                                                    "Grade")
-        src = self.get_source_text_from_cell(sum_ind+1)
-        return src
-
-
-    def main_loop(self, video_num, subject_pat="WSQ feedback for video %i"):
-        import gmail_smtp
-
-        self.chop_header()
-        self.chop_metadata()
-        self.break_into_cells()
-
-        start_ind = 0
-        N = len(self.cells)
-
-        #Pdb().set_trace()
-        subject = subject_pat % video_num
-        for i in range(start_ind, N):
-            student_start = self.find_next_student(start_ind)
-            if student_start is None:
-                return
-            else:
-                start_ind = student_start + 1
-                student_header = self.get_title(student_start)
-                print("%i:, %s" % (student_start, student_header))
-                #Pdb().set_trace()
-                #if student_start > 140:
-                #    pdb.set_trace()
-                sum_fb = self.get_summary_feedback(start_ind)
-                q_fb = self.get_question_feedback(start_ind)
-                grade = self.get_grade(start_ind)
-                body_pat = "## %s\n\n%s\n\n" * 3
-                body = body_pat % ("Summary Feedback", sum_fb, \
-                                   "Question Feedback", q_fb, \
-                                   "Grade", grade)
-
-                q_student = student_name_p.search(student_header)
-                full_name = q_student.group(1)
-                fname, email = get_email_and_fname_for_student(full_name)
-
-                intro = "%s,\n\nHere is your feedback for the WSQ for video %i:\n\n" % \
-                        (fname, video_num)
-
-                if video_num == 0:
-                    intro += "Note that the WSQ for video 0 is practice and the grade does not actually count.  This feedback is to help you understand my expectations and get a better grade on future WSQs.\n\n"
-                print("email: %s" % email)
-                body = intro+body
-                print("body:\n")
-                print(body)
-                print("="*20)
-                gmail_smtp.send_mail_gvsu([email],subject, body)
-
-                # at this point, I need a first name, an email, and the video #
-                # to send the feedback
-                # - ideally, I would also save the grades into a csv file to upload to BB
-
-
-
-
-def get_team_num(header_line):
-    part1, part2 = header_line.split(':',1)
-    part1 = part1.replace("Team ","")
-    part1 = part1.strip()
-    return int(part1)
+def feedback_cleaner(feedback):
+    reppairs = {'\\"':'"'}
+    for f, r in reppairs.items():
+        feedback = feedback.replace(f,r)
+    return feedback
 
 
 class lab_notebook_grade_extractor(wsq_grade_emailer):
@@ -949,15 +854,28 @@ class lab_notebook_grade_extractor(wsq_grade_emailer):
                 #grade = self.get_grade(start_ind)
                 q_team = team_p.search(team_header)
                 team_names = q_team.group(1)
+                team_names = team_names.strip()
                 team_num = get_team_num(team_header)
                 #pdb.set_trace()
                 uids = self.get_userids(start_ind)
                 feedback = self.get_feedback(start_ind)
+                feedback = feedback_cleaner(feedback)
                 memo_grade_str = self.get_memo_grade(start_ind)
                 comp_Q_grade_str = self.get_comp_Q_grade(start_ind)
                 try:
-                    total_grade = int(memo_grade_str) + int(comp_Q_grade_str)
+                    memo_grade = int(memo_grade_str)
                 except:
+                    memo_grade = -1
+                try:
+                    comp_Q_grade = int(comp_Q_grade_str)
+                except:
+                    comp_Q_grade = -1
+
+                try:
+                    total_grade = memo_grade + comp_Q_grade
+                except:
+                    #memo_grade = -1
+                    #comp_Q_grade = -1
                     total_grade = -1
                 currow = [team_num,team_names,uids,memo_grade_str, comp_Q_grade_str, \
                           total_grade]#, sum_fb, q_fb]
@@ -965,6 +883,11 @@ class lab_notebook_grade_extractor(wsq_grade_emailer):
                     # at this point, I need a first name, an email, and the lab #
                 # to send the feedback
                 # - ideally, I would also save the grades into a csv file to upload to BB
+
+                if send_email:
+                    send_lab_email(uids, team_names, lab_num, feedback, \
+                                   memo_grade, comp_Q_grade, total_grade, debug=debug)
+    
 
         outname = csv_pat % lab_num
         print("outname = %s" % outname)
