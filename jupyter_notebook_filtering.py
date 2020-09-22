@@ -3,6 +3,7 @@ import txt_mixin, rwkos
 import os, copy, txt_database
 import basic_file_ops
 import re
+import pdb
 
 title_p = re.compile('^ +"#+ (.*)')
 heading_level_p = re.compile('^ +"(#+) .*')
@@ -505,6 +506,8 @@ class wsq_question_extracter(jupyter_notebook):
 
 student_name_p = re.compile("Student [0-9]+: *(.*)")
 
+team_p = re.compile("Team [0-9]+: *(.*)")
+
 
 # email list path for 445_SS20
 #curdir = os.getcwd()
@@ -521,7 +524,10 @@ bb_list = txt_database.txt_database_from_file(bb_path)
 
 
 def get_lname_fname_and_uid_for_student(student_name):
-    fname, lname = student_name.split(" ",1)
+    #fname, lname = student_name.split(" ",1)
+    name_list = student_name.split(" ")
+    fname = name_list[0]
+    lname = name_list[-1]
     fname = fname.strip()
     lname = lname.strip()
     myind = -1
@@ -638,6 +644,8 @@ class wsq_grade_emailer(wsq_question_extracter):
                 student_header = self.get_title(student_start)
                 print("%i:, %s" % (student_start, student_header))
                 #Pdb().set_trace()
+                #if student_start > 140:
+                #    pdb.set_trace()
                 sum_fb = self.get_summary_feedback(start_ind)
                 q_fb = self.get_question_feedback(start_ind)
                 grade = self.get_grade(start_ind)
@@ -709,6 +717,88 @@ class wsq_grades_to_csv_converter(wsq_grade_emailer):
         mylabels = ['last name','first name','user id','grade']#,'summary feedback','question feedback']
         txt_mixin.dump_delimited(outname, rows, delim=',', fmt='%s', labels=mylabels)
 
+
+def get_team_num(header_line):
+    part1, part2 = header_line.split(':',1)
+    part1 = part1.replace("Team ","")
+    part1 = part1.strip()
+    return int(part1)
+
+
+class lab_notebook_grade_extractor(wsq_grade_emailer):
+    def find_next_team(self, start_ind):
+        """The grading jupyter notebooks have '# Team 1: Madison and Ciana' as
+        the top level headings.  So, the section for one team will
+        start with a level one header that matches the regexp
+        team_p."""
+        N = len(self.cells)
+        for i in range(start_ind,N):
+            h_cell = self.find_next_header_cell(start_ind,max_level=1)
+            if h_cell is None:
+                # there are no more header cells
+                return None
+            else:
+                title = self.get_title(h_cell)
+                title = title.strip()
+                q_team = team_p.match(title)
+                if q_team is not None:
+                    # we found a level one header cell
+                    # that matches the student header pattern
+                    return h_cell
+                # the title for this header cell didn't match the list,
+                # find the next header cell
+                start_ind = h_cell+1
+        # If we get to this point, we did not find a match
+        return None
+
+
+    def main_loop(self, lab_num):
+        csv_pat="lab_%0.2i_grades_out.csv"
+        self.chop_header()
+        self.chop_metadata()
+        self.break_into_cells()
+
+        start_ind = 0
+        N = len(self.cells)
+        rows = []
+
+        #Pdb().set_trace()
+        for i in range(start_ind, N):
+            team_start = self.find_next_team(start_ind)
+            if team_start is None:
+                break
+            else:
+                start_ind = team_start + 1
+                team_header = self.get_title(team_start)
+                print("%i:, %s" % (team_start, team_header))
+                #Pdb().set_trace()
+                #sum_fb = self.get_summary_feedback(start_ind)
+                #q_fb = self.get_question_feedback(start_ind)
+                #grade = self.get_grade(start_ind)
+                q_team = team_p.search(team_header)
+                team_names = q_team.group(1)
+                team_num = get_team_num(team_header)
+                ###########################################
+                #
+                # Start here: #<---------------------
+                #
+                ###########################################
+                # To do:
+                # - get team #
+                # - extract feedback
+                # - extract memo and comp Q grades
+                currow = [team_num,team_names]#, sum_fb, q_fb]
+                rows.append(currow)
+                    # at this point, I need a first name, an email, and the lab #
+                # to send the feedback
+                # - ideally, I would also save the grades into a csv file to upload to BB
+
+        outname = csv_pat % lab_num
+        print("outname = %s" % outname)
+        #mylabels = ['last name','first name','user id','grade']#,'summary feedback','question feedback']
+        txt_mixin.dump_delimited(outname, rows, delim=',', fmt='%s')#, labels=mylabels)
+    
+    
 
 class rsq_email_feedback(wsq_grade_emailer):
     def main_loop(self, subject, intro_line_1):
