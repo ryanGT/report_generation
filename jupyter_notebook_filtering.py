@@ -4,6 +4,7 @@ import os, copy, txt_database
 import basic_file_ops
 import re
 import pdb
+import numpy as np
 from IPython.core.debugger import Tracer;
 
 title_p = re.compile('^ +"#+ (.*)')
@@ -520,38 +521,54 @@ root = rwkos.get_root("345")
 grades_folder = os.path.join(root, "grades")
 
 bb_name = 'bb_email_list.csv'
-bb_path = os.path.join(grades_folder, bb_name)
-bb_list = txt_database.txt_database_from_file(bb_path)
+uid_name = 'userid_lookup.csv'
+uid_path = os.path.join(grades_folder, uid_name)
+uid_list = txt_database.txt_database_from_file(uid_path)
 
 
-def get_lname_fname_and_uid_for_student(student_name):
-    #fname, lname = student_name.split(" ",1)
+
+def split_name(student_name):
     name_list = student_name.split(" ")
-    fname = name_list[0]
-    lname = name_list[-1]
-    fname = fname.strip()
-    lname = lname.strip()
+    fname = name_list[0].strip()
+    lname = name_list[-1].strip()
+    return lname, fname
+
+
+def get_uid(student_name):    
+    name = student_name.strip()
     myind = -1
     #case insenstive lastname search
-    for i, test in enumerate(bb_list.Last_Name):
-        lsearch = lname.lower()
+    for i, test in enumerate(uid_list.name):
+        nsearch = name.lower()
         ltest = test.lower()
-        if ltest.find(lsearch) == 0:
+        if ltest.find(nsearch) == 0:
             myind = i
             break
     if myind == -1:
-        msg = "problem with last name: %s" % lname
+        msg = "problem with name: %s" % name
         raise(ValueError, msg)
     #myind = bb_list.get_ind(lname,"Last Name")
-    student = bb_list[myind]
-    user_id = student.Username
-    return lname, fname, user_id
+    student = uid_list[myind]
+    user_id = student.username
+    return user_id
 
 
-def get_email_and_fname_for_student(student_name):
-    lname, fname, user_id = get_lname_fname_and_uid_for_student(student_name)
+def get_email_for_student(student_name):
+    user_id = get_uid(student_name)
     email = user_id + "@mail.gvsu.edu"
+    return email
+
+
+def get_email_and_fname_for_student(full_name):
+    lname, fname = split_name(full_name)
+    email = get_email_for_student(full_name)
     return fname, email
+
+
+def get_lname_fname_and_uid_for_student(full_name):
+    lname, fname = split_name(full_name)
+    uid = get_uid(full_name)
+    return lname, fname, uid
 
 
 class wsq_grade_emailer(wsq_question_extracter):
@@ -638,7 +655,8 @@ class wsq_grade_emailer(wsq_question_extracter):
         return src
 
         
-    def main_loop(self, video_num, subject_pat="WSQ feedback for video %i"):
+    def main_loop(self, video_num, subject_pat="WSQ feedback for video %i", \
+                  debug=1):
         import gmail_smtp
     
         self.chop_header()
@@ -671,8 +689,12 @@ class wsq_grade_emailer(wsq_question_extracter):
 
                 q_student = student_name_p.search(student_header)
                 full_name = q_student.group(1)
+                
                 fname, email = get_email_and_fname_for_student(full_name)
 
+                if debug:
+                    print("fname, email = %s, %s" % (fname, email))
+                    
                 intro = "%s,\n\nHere is your feedback for the WSQ for video %i:\n\n" % \
                         (fname, video_num)
 
@@ -683,13 +705,69 @@ class wsq_grade_emailer(wsq_question_extracter):
                 print("body:\n")
                 print(body)
                 print("="*20)
-                gmail_smtp.send_mail_gvsu([email],subject, body)
+                #gmail_smtp.send_mail_gvsu([email],subject, body)
 
                 # at this point, I need a first name, an email, and the video #
                 # to send the feedback
                 # - ideally, I would also save the grades into a csv file to upload to BB
                 
 
+
+class wsq_email_addr_check(wsq_grade_emailer):
+    def main_loop(self):
+        self.chop_header()
+        self.chop_metadata()
+        self.break_into_cells()
+
+        start_ind = 0
+        N = len(self.cells)
+
+        missing_students = []
+        
+        #Pdb().set_trace()
+        for i in range(start_ind, N):
+            student_start = self.find_next_student(start_ind)
+            if student_start is None:
+                break
+            else:
+                start_ind = student_start + 1
+                student_header = self.get_title(student_start)
+                #print("%i:, %s" % (student_start, student_header))
+                #Pdb().set_trace()
+                #if student_start > 140:
+                #    pdb.set_trace()
+                sum_fb = self.get_summary_feedback(start_ind)
+                q_fb = self.get_question_feedback(start_ind)
+                grade = self.get_grade(start_ind)
+                body_pat = "## %s\n\n%s\n\n" * 3
+                body = body_pat % ("Summary Feedback", sum_fb, \
+                                   "Question Feedback", q_fb, \
+                                   "Grade", grade)
+
+                q_student = student_name_p.search(student_header)
+                full_name = q_student.group(1)
+
+                try:
+                    fname, email = get_email_and_fname_for_student(full_name)
+                    print("Name: %s, email: %s" % (full_name, email))
+                except:
+                    print("Missing email: %s" % full_name)
+                    missing_students.append(full_name)
+
+
+        print("missing_students: %s" % missing_students)
+        
+        if missing_students:
+            print('='*10)
+            for name in missing_students:
+                print(name)
+            print('='*10)            
+            txt_mixin.dump("missing_emails.csv", missing_students)
+
+        return missing_students
+                    
+                
+    
 
 class wsq_grades_to_csv_converter(wsq_grade_emailer):
     def main_loop(self, video_num, csv_pat="wsq_grades_for_video_%0.3i.csv"):
@@ -795,11 +873,22 @@ class lab_notebook_grade_extractor(wsq_grade_emailer):
         return None
 
 
-    def get_userids(self, start_ind):
-        ind = self.get_any_level_header_that_starts_with(start_ind, \
-                                                         "userids")
-        title = self.get_title(ind)
-        uids = title.replace("userids:","")
+    def get_team_row(self, team_num):
+        matches = np.where(self.db.Team_Number == team_num)[0]
+        assert len(matches) > 0, "Did not find a match for team number %i" % team_num
+        assert len(matches) == 1, "found more than on match for team number %i" % team_num
+        ind = matches[0]
+        row = self.db[ind]
+        return row
+    
+
+    def get_userids(self, team_num):
+        # - get team #
+        # - look up team # is db
+        # - get userids from db
+        # Team Number,members,userids,memo grade,comp Q grade,lab 2 grade,feedback,marked up files
+        row = self.get_team_row(team_num)
+        uids = row.userids
         uids = uids.strip()
         return uids
 
@@ -828,8 +917,15 @@ class lab_notebook_grade_extractor(wsq_grade_emailer):
         return src
 
 
+    def load_team_db(self):
+        labs_folder = os.path.join(grades_folder,'labs')
+        db_path = os.path.join(labs_folder, 'lab_groups.csv')
+        self.db = txt_database.txt_database_from_file(db_path)
+        self.db.Team_Number = self.db.Team_Number.astype(int)
+        
 
     def main_loop(self, lab_num, send_email=0, debug=1):
+        self.load_team_db()
         csv_pat="lab_%0.2i_grades_out.csv"
         self.chop_header()
         self.chop_metadata()
@@ -857,7 +953,7 @@ class lab_notebook_grade_extractor(wsq_grade_emailer):
                 team_names = team_names.strip()
                 team_num = get_team_num(team_header)
                 #pdb.set_trace()
-                uids = self.get_userids(start_ind)
+                uids = self.get_userids(team_num)
                 feedback = self.get_feedback(start_ind)
                 feedback = feedback_cleaner(feedback)
                 memo_grade_str = self.get_memo_grade(start_ind)
