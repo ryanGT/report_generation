@@ -705,7 +705,7 @@ class wsq_grade_emailer(wsq_question_extracter):
                 print("body:\n")
                 print(body)
                 print("="*20)
-                #gmail_smtp.send_mail_gvsu([email],subject, body)
+                gmail_smtp.send_mail_gvsu([email],subject, body)
 
                 # at this point, I need a first name, an email, and the video #
                 # to send the feedback
