@@ -137,6 +137,8 @@ def beamer_img_path_to_html_path(img_path):
     pdf_image_to_png to create the image if necessary and then returns
     the .png or .jpg filename."""
     fno, ext = os.path.splitext(img_path)
+    print('img_path = %s' % img_path)
+    print('ext = %s' % ext)
     if ext[0] == '.':
         ext = ext[1:]
     if ext == 'pdf':

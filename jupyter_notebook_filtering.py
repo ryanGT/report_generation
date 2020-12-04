@@ -85,7 +85,7 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
 
         
     def chop_header(self):
-        assert self.list[0] == '{', 'problem with line 1'
+        assert self.list[0] == '{', 'problem with line 1: (%s)' % self.list[0]
         assert self.list[1] == ' "cells": [', 'problem with line 2'
         self.header = copy.copy(self.list[0:2])
         self.list[0:2] = []
@@ -458,6 +458,9 @@ class jupyter_notebook_slide_maker(jupyter_notebook_title_popper):
         
 
 class jupyter_notebook_student_notebook_maker(jupyter_notebook_slide_maker):
+    def pop_title_header(self):
+        pass
+
     def process_one_onlynotes_cell(self, cell_ind):
         self.process_only_slide_removing_just_only_line(cell_ind, "onlynotes")
 
