@@ -959,11 +959,11 @@ class lab_notebook_grade_extractor(wsq_grade_emailer):
                 memo_grade_str = self.get_memo_grade(start_ind)
                 comp_Q_grade_str = self.get_comp_Q_grade(start_ind)
                 try:
-                    memo_grade = int(memo_grade_str)
+                    memo_grade = float(memo_grade_str)
                 except:
                     memo_grade = -1
                 try:
-                    comp_Q_grade = int(comp_Q_grade_str)
+                    comp_Q_grade = float(comp_Q_grade_str)
                 except:
                     comp_Q_grade = -1
 
