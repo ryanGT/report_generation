@@ -520,7 +520,7 @@ team_p = re.compile("Team [0-9]+: *(.*)")
 #    grades_folder = '/mnt/chromeos/GoogleDrive/MyDrive/Teaching/445_SS20/grades'
 #else:
 #    grades_folder = "/Users/kraussry/Google Drive/Teaching/445_SS20/grades"
-root = rwkos.get_root("345")
+root = rwkos.get_root("445")
 grades_folder = os.path.join(root, "grades")
 
 bb_name = 'bb_email_list.csv'
@@ -549,7 +549,7 @@ def get_uid(student_name):
             break
     if myind == -1:
         msg = "problem with name: %s" % name
-        raise(ValueError, msg)
+        raise ValueError(msg)
     #myind = bb_list.get_ind(lname,"Last Name")
     student = uid_list[myind]
     user_id = student.username
