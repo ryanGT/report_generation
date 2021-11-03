@@ -598,3 +598,102 @@ class rbg_id_wsq(rbg_sketching_wsq):
             out_one_item("%s" % default_grade)
 
     
+
+
+class psq_markdown_maker(wsq_markdown_maker):
+    def find_attr_starting_with(self, search_str):
+        """Find the attribute that starts with search_str"""
+        found = 0
+        for attr in self.attr_names:
+            if attr.find(search_str) == 0:
+                return attr
+            
+    
+    def __init__(self, csv_name, class_num):
+        txt_database.txt_database_from_file.__init__(self, csv_name)
+        self.csv_name = csv_name
+        self.class_num = class_num
+        self.md_list = []
+        self.out = self.md_list.append
+        self.summary_attr = self.find_attr_starting_with("Summary")
+        self.question_attr = self.find_attr_starting_with("Question")
+        
+
+    def add_pres_title(self):
+        self.out('# PSQ for Class %i' % self.class_num)
+        self.out('')
+    
+
+
+    def build_grading_doc(self, start_ind=0):
+        """This function assumes we have a clean csv file with no
+        feedback that is ultimately being made into a juptyer notebook
+        for me to enter feedback and grades.
+    
+        In order to handle appending based on new rows in the csv, I
+        am adding the start_ind option."""
+        print("in build_grading_doc")
+        summaries = getattr(self, self.summary_attr)
+        questions = getattr(self, self.question_attr)
+        
+        N = len(summaries)
+
+        def out_one_item(pat, j=None):
+            if j is None:
+                self.out(pat)
+            else:
+                self.out(pat % j)
+            self.out("")
+
+        self.find_grading_cutoffs()
+        print('='*30)
+        print('')
+        print('EC cutoff 1: %s' % self.cutoff1)
+        print('EC cutoff 2: %s' % self.cutoff2)
+        print('')
+        print('='*30)
+
+        for i in range(start_ind, N):
+            j = i+1
+            name = self.Your_Name[i]
+            summary = summaries[i]
+            question = questions[i]
+
+            try:
+                timestamp = self.Timestamp[i]
+            except:
+                pdb.set_trace()
+
+            print("timestamp = %s" % timestamp)
+
+            self.out('# Student %i: %s' % (j, name))
+            self.out('')
+            self.out("## Summary %s" % j)
+            self.out("")
+            self.out(summary)
+            self.out("")
+            self.out("## Question %s" % j)            
+            self.out("")
+            self.out(question)
+            self.out("")
+            out_one_item("## Summary Feedback %i", j)
+            # default summary feedback
+            out_one_item("good summary")
+            out_one_item("## Question Feedback %i", j)
+            pretty_ts = reformat_timestamp(timestamp)
+            self.out('### Timestamp %i: %s - %s' % (j,timestamp, pretty_ts))
+            self.out('')
+            ## - determine EC cutoffs
+            ## - compare time stamps to cutoffs
+            ## - determing default grade
+            #default_grade = self.get_default_grade(timestamp)
+            default_grade = 10
+            out_one_item("## Grade %i", j)
+            # default grade
+            ## get time stamp here
+            out_one_item("%s" % default_grade)
+
+
+    def make_grading_name(self):
+        outname = "PSQ_markdown_grading_for_class_%0.2i.md" % self.class_num
+        return outname

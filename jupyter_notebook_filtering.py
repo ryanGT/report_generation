@@ -520,7 +520,7 @@ team_p = re.compile("Team [0-9]+: *(.*)")
 #    grades_folder = '/mnt/chromeos/GoogleDrive/MyDrive/Teaching/445_SS20/grades'
 #else:
 #    grades_folder = "/Users/kraussry/Google Drive/Teaching/445_SS20/grades"
-root = rwkos.get_root("445")
+root = rwkos.get_root("345")
 grades_folder = os.path.join(root, "grades")
 
 bb_name = 'bb_email_list.csv'
@@ -644,6 +644,13 @@ class wsq_grade_emailer(wsq_question_extracter):
         return src
 
 
+    def get_question(self, start_ind):
+        sum_ind = self.get_level_one_or_two_header_that_starts_with(start_ind, \
+                                                                    "Question")
+        src = self.get_source_text_from_cell(sum_ind+1)
+        return src
+
+
     def get_question_feedback(self, start_ind):
         sum_ind = self.get_level_one_or_two_header_that_starts_with(start_ind, \
                                                                     "Question Feedback")
@@ -682,11 +689,13 @@ class wsq_grade_emailer(wsq_question_extracter):
                 #Pdb().set_trace()
                 #if student_start > 140:
                 #    pdb.set_trace()
+                question = self.get_question(start_ind)
                 sum_fb = self.get_summary_feedback(start_ind)
                 q_fb = self.get_question_feedback(start_ind)
                 grade = self.get_grade(start_ind)
-                body_pat = "## %s\n\n%s\n\n" * 3
-                body = body_pat % ("Summary Feedback", sum_fb, \
+                body_pat = "## %s\n\n%s\n\n" * 4
+                body = body_pat % ("Your Question", question, \
+                                   "Summary Feedback", sum_fb, \
                                    "Question Feedback", q_fb, \
                                    "Grade", grade)
 
