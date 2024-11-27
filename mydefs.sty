@@ -8,6 +8,8 @@
 \newcommand{\columnsbegin}{\begin{columns}}
 \newcommand{\columnsend}{\end{columns}}
 \newcommand{\myfig}[2]{\begin{center}\includegraphics[width=#1]{#2}\end{center}}
+\newcommand{\myvfig}[2]{\begin{center}\includegraphics[height=#1]{#2}\end{center}}
+\newcommand{\myfigcap}[3]{\begin{figure}[hbtp]\begin{center}\includegraphics[width=#1]{#2}\end{center}\caption{#3}\end{figure}}
 \newcommand{\om}[1]{^{#1}\bar{\omega}_{#1}}
 \newcommand{\thd}[1]{\dot{\theta}_{#1}}
 \newcommand{\thdv}[1]{\begin{bmatrix} 0 \\ 0 \\ \thd{#1}\end{bmatrix}}
