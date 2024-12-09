@@ -1,7 +1,7 @@
 import numpy
 from numpy import ndarray, array, poly1d
-from scipy import isscalar, shape, imag, real, angle
-from scipy import isscalar, shape, imag, real, array, angle, matrix
+from numpy import isscalar, shape, imag, real, angle
+from numpy import array, matrix
 import sympy,decimal
 import control
 try:
@@ -110,16 +110,16 @@ def TF_to_latex(G, lhs=None):
     mystr = str(G)
     mylist = mystr.split('\n')
     clean_list = list(filter(None, mylist))
-    assert len(clean_list) == 3, \
-           "something is wrong with [num, dashes, den] asumption: " + \
-           str(clean_list)
+    #assert len(clean_list) == 3, \
+    #       "something is wrong with [num, dashes, den] asumption: " + \
+    #       str(clean_list)
 
-    dashes = clean_list[1]
+    dashes = clean_list[-2]
     assert dashes[0:2] == '--', "something is wrong with dashes" + \
            str(clean_list)
 
-    num = clean_list[0].strip()
-    den = clean_list[2].strip()
+    num = clean_list[-3].strip()
+    den = clean_list[-1].strip()
     outstr = "\\frac{%s}{%s}" % (num,den)
 
     if lhs is not None:
@@ -364,7 +364,7 @@ def VariableToLatex(myvar, mylhs, ams=True, matstr='bmatrix', \
     or not it is a scalar.
 
     If ams is True, assume the LaTeX header includes
-    \\usepackage{amsmath} so that bmatrix is used rather than \left[
+    \\usepackage{amsmath} so that bmatrix is used rather than \\left[
     \\begin{array}{ccccc} ... \\end{array} \\right].
 
     This function always returns a list so that the output is
