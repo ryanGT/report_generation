@@ -92,6 +92,8 @@ class obsidian_markdown_processor(object):
 
 
     def find_one_image(self, img_fn):
+        ## There seems to be a problem here in that I have allowed
+        ## a list of image roots and that isn't being handled well.
         print("self.images_root = %s" % self.images_root)
         print("img_fn = %s" % img_fn)
         matches = rwkos.find_in_top_and_all_sub_dirs(self.images_root,img_fn)
@@ -246,7 +248,10 @@ class obsidian_image_handler(obsidian_markdown_processor):
     """Given a markdown file from obsidian with ![imagefile], 
         - find the images
         - copy them to a subfolder
-        - replace the text with \\myfig{}{} or something."""
+        - replace the text with \\myfig{}{} or something.
+
+        Note: this class handles a list of image roots, where the main
+        base class does not."""
     def __init__(self, md_path, dstfolder=None, \
                  prep_root=None, img_root_list=[], \
                  default_img_size='4.5in'):
@@ -438,7 +443,7 @@ class obsidian_image_handler(obsidian_markdown_processor):
 
 
 
-class obsidian_technical_paper(obsidian_markdown_processor):
+class obsidian_technical_paper(obsidian_image_handler):#,obsidian_markdown_processor):
     def __init__(self, md_path, dstfolder=None, \
                  prep_root=None, img_root_list=[]):
         self.md_path = md_path

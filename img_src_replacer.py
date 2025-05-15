@@ -1,4 +1,5 @@
-import txt_mixin, re, os
+from krauss_misc import txt_mixin
+import re, os
 import bb_utils
 
 

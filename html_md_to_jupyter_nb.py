@@ -16,7 +16,8 @@ Conversion approach:
     - probably separating the title from the body in separate cells
 """
 #from IPython.core.debugger import Pdb
-import txt_mixin, copy, os, re, basic_file_ops
+import copy, os, re
+from krauss_misc import txt_mixin, basic_file_ops
 level_pat = re.compile("(#+).*")
 
 tail = """ ],

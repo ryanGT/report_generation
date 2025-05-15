@@ -1,5 +1,5 @@
-import txt_mixin, copy, os, re
-import relpath
+from krauss_misc import txt_mixin, relpath
+import copy, os, re
 
 def remove_columns_filter(listin):
     for i in range(10000):
@@ -114,7 +114,8 @@ def beamer_to_notes_filter(listin):
     return listin
 
 
-p_myfig = re.compile(r'\\myfig{(.*)}{(.*)}')
+p_myfig = re.compile(r'\\myv*fig{(.*)}{(.*)}')
+
 
 def pdf_image_to_png(pdfpath):
     fno, ext = os.path.splitext(pdfpath)
@@ -158,6 +159,9 @@ def beamer_img_path_to_html_line(img_path, width=600):
 
 def myfig_to_html_filter(listin, width=600):
     myinds = listin.findall('\\myfig{')
+    inds2 = listin.findall('\\myvfig{')
+    myinds += inds2
+
     for ind in myinds:
         match_line = listin[ind]
         print("match_line = %s" % match_line)

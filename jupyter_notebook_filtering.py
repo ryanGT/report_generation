@@ -1,11 +1,11 @@
-import txt_mixin, rwkos
+from krauss_misc import txt_mixin, rwkos, basic_file_ops
 #from IPython.core.debugger import Pdb
 import os, copy, txt_database
-import basic_file_ops
+#import basic_file_ops
 import re
 import pdb
 import numpy as np
-from IPython.core.debugger import Tracer;
+#from IPython.core.debugger import Tracer;
 
 title_p = re.compile('^ +"#+ (.*)')
 heading_level_p = re.compile('^ +"(#+) .*')
@@ -174,7 +174,7 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         """If the first cell is a level one header, it is assumed to
         contain the document title."""
         ind = self.find_next_header_cell(start_ind=0, max_level=1)
-        if ind < 3:
+        if (ind is not None) and (ind < 3):
             return self.get_title(ind)
         else:
             return None
@@ -361,7 +361,7 @@ class jupyter_notebook_title_popper(jupyter_notebook):
         """If the first cell is a level one header, it is assumed to
         contain the document title."""
         ind = self.find_next_header_cell(start_ind=0, max_level=1)
-        if ind < 3:
+        if (ind is not None) and (ind < 3):
             self.cells.pop(ind)
 
     
@@ -520,13 +520,13 @@ team_p = re.compile("Team [0-9]+: *(.*)")
 #    grades_folder = '/mnt/chromeos/GoogleDrive/MyDrive/Teaching/445_SS20/grades'
 #else:
 #    grades_folder = "/Users/kraussry/Google Drive/Teaching/445_SS20/grades"
-root = rwkos.get_root("345")
-grades_folder = os.path.join(root, "grades")
+#root = rwkos.get_root("345")
+#grades_folder = os.path.join(root, "grades")
 
-bb_name = 'bb_email_list.csv'
-uid_name = 'userid_lookup.csv'
-uid_path = os.path.join(grades_folder, uid_name)
-uid_list = txt_database.txt_database_from_file(uid_path)
+#bb_name = 'bb_email_list.csv'
+#uid_name = 'userid_lookup.csv'
+#uid_path = os.path.join(grades_folder, uid_name)
+#uid_list = txt_database.txt_database_from_file(uid_path)
 
 
 
