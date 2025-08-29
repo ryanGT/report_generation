@@ -113,8 +113,19 @@ class jupyter_notebook(txt_mixin.txt_file_with_list):
         # marks the start and end of every cell
         start_inds = self.findall('  {', forcestart=1)
         end_inds = self.findall('  }', forcestart=1)
-        assert len(start_inds) == len(end_inds), \
-            "problem matching starting and ending curly braces"
+        if len(start_inds) != len(end_inds):
+            lstart = len(start_inds)
+            lend = len(end_inds)
+
+            print("problem matching starting and ending curly braces:")
+            print("start_inds = %s\nend_inds = %s" % (start_inds, end_inds))
+            print("len(start_inds) = %s" % lstart)
+            print("len(end_inds) = %s"% lend)
+            last_cell = self.list[start_inds[-2]:end_inds[-1]]
+            print("last cell:")
+            print(last_cell)
+
+            raise ValueError("bad things")
         cells = []
         for start, end in zip(start_inds, end_inds):
             curlines = copy.copy(self.list[start:end+1])

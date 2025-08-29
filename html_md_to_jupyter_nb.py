@@ -20,28 +20,52 @@ import copy, os, re
 from krauss_misc import txt_mixin, basic_file_ops
 level_pat = re.compile("(#+).*")
 
+#tail = """ ],
+#    "metadata": {
+#        "kernelspec": {
+#            "display_name": "Python 3",
+#            "language": "python",
+#            "name": "python3"
+#        },
+#        "language_info": {
+#            "codemirror_mode": {
+#                "name": "ipython",
+#                "version": 3
+#            },
+#            "file_extension": ".py",
+#            "mimetype": "text/x-python",
+#            "name": "python",
+#            "nbconvert_exporter": "python",
+#            "pygments_lexer": "ipython3",
+#            "version": "3.6.4"
+#        }
+#    },
+#    "nbformat": 4,
+#    "nbformat_minor": 2
+#}"""
+#
 tail = """ ],
-    "metadata": {
-        "kernelspec": {
-            "display_name": "Python 3",
-            "language": "python",
-            "name": "python3"
-        },
-        "language_info": {
-            "codemirror_mode": {
-                "name": "ipython",
-                "version": 3
-            },
-            "file_extension": ".py",
-            "mimetype": "text/x-python",
-            "name": "python",
-            "nbconvert_exporter": "python",
-            "pygments_lexer": "ipython3",
-            "version": "3.6.4"
-        }
-    },
-    "nbformat": 4,
-    "nbformat_minor": 2
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
 }"""
 
 def check_level(linein):
@@ -111,7 +135,7 @@ class md_jupyter_file(txt_mixin.txt_file_with_list):
 
     def remove_trailing_comma(self):
         assert self.ipynb_list[-1] == '  },', "trailing comma not found"
-        self.ipynb_list[-1] = '   }'
+        self.ipynb_list[-1] = '  }'
         
     
 
